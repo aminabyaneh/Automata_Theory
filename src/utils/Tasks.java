@@ -16,5 +16,8 @@ public enum Tasks {
     NFA,
 
     /** The Deterministic Finite Automata. */
-    DFA
+    DFA,
+
+    /** An unknown entry. */
+    Unknown
 }
