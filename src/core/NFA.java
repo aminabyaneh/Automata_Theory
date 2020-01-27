@@ -1,6 +1,7 @@
 package core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import utils.Phrase;
 
@@ -72,7 +73,11 @@ public class NFA {
             /** Rename the second one states as in continue of the first one. */
             NFA.renameStates(nfaMerged, nfa);
 
-            /**  */
+            /** Add new alphabet letters to the second table. */
+            NFA.expandAlphabets(nfaMerged, nfa);
+
+            /** Add new states to first NFA. */
+            NFA.expandStates(nfaMerged, nfa);
         }
 
         return nfaMerged;
@@ -81,7 +86,7 @@ public class NFA {
     public static void starNFA(NFA nfaA) {
 
         ArrayList<ArrayList<Integer>> columnEnd;
-        columnEnd = nfaA.NFATable.get(2);
+        columnEnd = nfaA.NFATable.get(nfaA.NFATable.size() - 1);
 
         ArrayList<Integer> cell = columnEnd.get(columnEnd.size() - 1);
         if (!cell.contains(1))
@@ -121,24 +126,104 @@ public class NFA {
 
         for (ArrayList<ArrayList<Integer>> column : nfaB.NFATable) {
 
+            if (nfaB.NFATable.indexOf(column) == 0)
+                continue;
+
             ArrayList<Integer> cell = column.get(0);
-            cell.set(0, maxStateNumber + 1 + nfaB.NFATable.indexOf(column));
+            cell.set(0, maxStateNumber + nfaB.NFATable.indexOf(column));
         }
+    }
+
+    private static void expandAlphabets(NFA nfaA, NFA nfaB) {
+
+        ArrayList<Integer> alphabetA = NFA.extractAlphabet(nfaA);
+        ArrayList<Integer> alphabetB = NFA.extractAlphabet(nfaB);
+
+        for (Integer letter : alphabetB) {
+
+            if (alphabetA.contains(letter))
+                continue;
+
+            NFA.addLetter(nfaA, letter);
+        }
+        System.out.println("Alphabet: " + NFA.extractAlphabet(nfaA).toString());
+    }
+
+    private static void expandStates(NFA nfaA, NFA nfaB) {
+
+        ArrayList<Integer> statesB = NFA.extractStates(nfaB);
+        Collections.reverse(statesB);
+
+        for (Integer state : statesB) {
+
+            NFA.addState(nfaA, nfaB, state);
+        }
+        System.out.println("Alphabet: " + NFA.extractAlphabet(nfaA).toString());
+    }
+
+    private static ArrayList<Integer> extractAlphabet(NFA nfa) {
+
+        ArrayList<Integer> alphabet = new ArrayList<Integer>();
+        for (ArrayList<Integer> cell : nfa.NFATable.get(0)) {
+
+            if (cell.get(0) == 0)
+                continue;
+            alphabet.add(cell.get(0));
+        }
+        return null;
+    }
+
+    private static ArrayList<Integer> extractStates(NFA nfa) {
+
+        ArrayList<Integer> states = new ArrayList<Integer>();
+        for (ArrayList<ArrayList<Integer>> column : nfa.NFATable) {
+
+            if (column.get(0).get(0) == 0)
+                continue;
+            states.add(column.get(0).get(0));
+        }
+        return null;
     }
 
     private static void addLetter(NFA nfaA, int letter) {
 
-        ArrayList<Integer> cell = new ArrayList<Integer>();
+        ArrayList<Integer> cell;
         for (ArrayList<ArrayList<Integer>> c : nfaA.NFATable) {
 
             if (nfaA.NFATable.indexOf(c) == 0) {
+
+                cell = new ArrayList<Integer>();
                 cell.add(letter);
-                c.add(cell);
+
+                if (letter == NFA.epsilon)
+                    c.add(cell);
+                else
+                    c.add(c.size() - 1, cell);
             }
             else {
+
                 cell = new ArrayList<Integer>();
-                c.add(cell);
+
+                if (letter == NFA.epsilon)
+                    c.add(cell);
+                else
+                    c.add(c.size() - 1, cell);
             }
         }
+    }
+
+    private static void addState(NFA nfaA, NFA nfaB, int state) {
+
+        ArrayList<ArrayList<Integer>> stateColumn;
+        for (ArrayList<ArrayList<Integer>> column : nfaB.NFATable) {
+
+            if (column.get(0).get(0) == state) {
+
+                stateColumn = column;
+                break;
+            }
+        }
+
+
     }
 }

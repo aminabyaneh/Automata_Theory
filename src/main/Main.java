@@ -2,7 +2,6 @@ package main;
 
 import java.util.ArrayList;
 
-import core.NFA;
 import core.RegEx;
 import utils.IO;
 import utils.RegExEntry;
@@ -12,8 +11,8 @@ public class Main {
     public static void main(String []argc) {
 
 
-        automata();
-        //        test();
+        //        automata();
+        test();
     }
 
     private static void automata() {
@@ -36,39 +35,17 @@ public class Main {
 
         System.out.println("Test sequence initiated...");
 
-        ArrayList<ArrayList<ArrayList<Integer>>> NFATable = new ArrayList<ArrayList<ArrayList<Integer>>>();
-
-        ArrayList<ArrayList<Integer>> column = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> cell = new ArrayList<Integer>();
-        cell.add(0);
-        column.add(cell);
-        cell = new ArrayList<Integer>();
         cell.add(1);
-        column.add(cell);
-
-        NFATable.add(column);
-
-        column = new ArrayList<ArrayList<Integer>>();
-        cell = new ArrayList<Integer>();
-        cell.add(1);
-        column.add(cell);
-        cell = new ArrayList<Integer>();
         cell.add(2);
-        column.add(cell);
+        cell.add(3);
+        cell.add(4);
+        cell.add(5);
 
-        NFATable.add(column);
-
-        column = new ArrayList<ArrayList<Integer>>();
-        cell = new ArrayList<Integer>();
-        cell.add(2);
-        column.add(cell);
-        cell = new ArrayList<Integer>();
-        column.add(cell);
-
-        NFATable.add(column);
-        column = NFATable.get(0);
-
-        System.out.println(column.get(column.size() - 1).contains(NFA.epsilon));
+        cell.add(1, 0);
+        cell.add(1, 6);
+        cell.add(1, 8);
+        System.out.println(cell.toString());
     }
 
 }
