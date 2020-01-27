@@ -163,13 +163,32 @@ public class RegEx {
         /** Checking for star in phrases and applying it to NFA. */
         for (Phrase p : phrases) {
 
+            int index = phrases.indexOf(p);
+            NFA.addEpsilon(nfas.get(index));
+
             if (p.hasStar) {
 
-                int index = phrases.indexOf(p);
-                combinedNFA = NFA.starNFA(nfas.get(index));
-                nfas.set(index, combinedNFA);
+                NFA.starNFA(nfas.get(index));
+                System.out.println("Star result: " + nfas.get(index).NFATable.toString());
             }
 
+        }
+
+        /** Start processing the operations. */
+        Phrase p = phrases.get(0);
+        if (p.nextOperation == Chars.concatenation) {
+
+            combinedNFA = NFA.concatNFA(nfas);
+            System.out.println("Concat result: " + combinedNFA.NFATable.toString());
+            return combinedNFA;
+        }
+        else if (p.nextOperation == Chars.union) {
+
+        }
+        else if (p.nextOperation == Chars.none) {
+
+            /** Only one phrase exists in this case so return the NFA. */
+            combinedNFA = nfas.get(0);
         }
 
         return combinedNFA;
