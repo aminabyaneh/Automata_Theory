@@ -1,0 +1,24 @@
+####### Test 1 ######
+RegEx
+ab((a|b))*bc(a)*
+NFA
+
+####### Test 2 ######
+RegEx
+ab((a|b))*bc(a)*aaa(a|b)a(b)*
+NFA
+
+####### Test 3 ######
+RegEx
+(a|b)(a)*
+NFA
+
+####### Test 4 ######
+RegEx
+(a)*
+NFA
+
+####### Test 4 ######
+RegEx
+(a)
+NFA
