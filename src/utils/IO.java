@@ -2,6 +2,10 @@ package utils;
 
 import java.util.Scanner;
 
+import entries.CFGEntry;
+import entries.NFAEntry;
+import entries.RegExEntry;
+
 /**
  * The Class IO.
  */
@@ -108,6 +112,7 @@ public class IO {
      * @return the NFA entry
      */
     private NFAEntry readNFA() {
+
         return null;
 
         //TODO
@@ -127,8 +132,6 @@ public class IO {
 
         sc.close();
 
-        System.out.println("input task: " + inputRegEx.getTask().toString());
-        System.out.println("input data: " + inputRegEx.getInputRegEx());
         return inputRegEx;
     }
 
@@ -153,7 +156,6 @@ public class IO {
             return Tasks.RegEx;
 
         default:
-            System.out.println("unrecognized task");
             return Tasks.Unknown;
         }
     }
@@ -165,6 +167,7 @@ public class IO {
      * @return the data
      */
     public Object getData() {
+
         return data;
     }
 }

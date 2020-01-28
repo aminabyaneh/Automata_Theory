@@ -3,8 +3,8 @@ package main;
 import java.util.ArrayList;
 
 import core.RegEx;
+import entries.RegExEntry;
 import utils.IO;
-import utils.RegExEntry;
 
 public class Main {
 
@@ -22,7 +22,8 @@ public class Main {
         switch (ioHandler.getDataType()) {
 
         case RegEx:
-            RegEx nfa = new RegEx((RegExEntry)ioHandler.getData());
+            RegEx regEx = new RegEx((RegExEntry)ioHandler.getData());
+            regEx.taskHandler();
             break;
 
         default:
@@ -42,9 +43,7 @@ public class Main {
         cell.add(4);
         cell.add(5);
 
-        cell.add(1, 0);
-        cell.add(1, 6);
-        cell.add(1, 8);
+        cell.add(cell.size(), 0);
         System.out.println(cell.toString());
     }
 

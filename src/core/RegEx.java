@@ -3,9 +3,9 @@ package core;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import entries.RegExEntry;
 import utils.Chars;
 import utils.Phrase;
-import utils.RegExEntry;
 import utils.Tasks;
 
 /**
@@ -21,6 +21,8 @@ public class RegEx {
     /** The task in which the code has to perform. */
     private Tasks task;
 
+    private NFA requestedNFA;
+
     /** Logger is initiated. */
     private static final Logger LOGGER =
             Logger.getLogger(RegEx.class.getName());
@@ -35,27 +37,22 @@ public class RegEx {
         /** Set the main variables. */
         this.regex = data.getInputRegEx();
         this.task = data.getTask();
-
-        /** Call the task to action function. */
-        this.taskHandler();
     }
 
-    private void taskHandler() {
+    public void taskHandler() {
 
         switch (this.task) {
 
         case RegEx:
             System.out.println(this.regex);
             break;
-        case DFA:
-            break;
         case NFA:
             this.createNFA();
             break;
 
+        case DFA:
         case PDA:
         default:
-            LOGGER.warning("required task is not available.");
             break;
         }
     }
@@ -70,9 +67,8 @@ public class RegEx {
 
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
-        System.out.println("Regex after concatenation: " + this.regex);
-        NFA ret = this.buildNFA(this.regex);
-        System.out.println("Final NFA: " + ret.NFATable.toString());
+        requestedNFA = this.buildNFA(this.regex);
+        System.out.println("Final NFA: " + requestedNFA.nfaTable.table.toString());
     }
 
     /**
@@ -176,32 +172,35 @@ public class RegEx {
             nfas.add(this.buildNFA(p.string));
         }
 
-        NFA combinedNFA = new NFA();
 
         /** Checking for star in phrases and applying it to NFA. */
+
         for (Phrase p : phrases) {
 
             int index = phrases.indexOf(p);
-            NFA.addEpsilon(nfas.get(index));
+            Table.addEpsilon(nfas.get(index));
 
             if (p.hasStar) {
 
                 NFA.starNFA(nfas.get(index));
                 LOGGER.config("Star result: " +
-                        nfas.get(index).NFATable.toString());
+                        nfas.get(index).nfaTable.table.toString());
             }
         }
 
         /** Start processing the operations. */
+        NFA combinedNFA = new NFA();
         Phrase p = phrases.get(0);
+
         if (p.nextOperation == Chars.concatenation) {
 
             combinedNFA = NFA.concatNFA(nfas);
-            LOGGER.config("Concat result: " + combinedNFA.NFATable.toString());
-            return combinedNFA;
+            LOGGER.config("Concat result: " + combinedNFA.nfaTable.table.toString());
         }
         else if (p.nextOperation == Chars.union) {
 
+            combinedNFA = NFA.unionNFA(nfas);
+            LOGGER.config("Union result: " + combinedNFA.nfaTable.table.toString());
         }
         else if (p.nextOperation == Chars.none) {
 

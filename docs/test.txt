@@ -32,3 +32,9 @@ NFA
 RegEx
 a.b.(c)*
 NFA
+
+####### Test 8 ######
+RegEx
+(a|(b)*|c)*a
+NFA
+

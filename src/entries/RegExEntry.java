@@ -1,4 +1,6 @@
-package utils;
+package entries;
+
+import utils.Tasks;
 
 /**
  * The Class RegExEntry.
