@@ -18,7 +18,17 @@ RegEx
 (a)*
 NFA
 
-####### Test 4 ######
+####### Test 5 ######
 RegEx
 (a)
+NFA
+
+####### Test 6 ######
+RegEx
+(abc)*ab
+NFA
+
+####### Test 7 ######
+RegEx
+a.b.(c)*
 NFA

@@ -11,8 +11,8 @@ public class Main {
     public static void main(String []argc) {
 
 
-        //        automata();
-        test();
+        automata();
+        //        test();
     }
 
     private static void automata() {

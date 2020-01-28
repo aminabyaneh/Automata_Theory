@@ -1,6 +1,7 @@
 package core;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import utils.Chars;
 import utils.Phrase;
@@ -19,6 +20,10 @@ public class RegEx {
 
     /** The task in which the code has to perform. */
     private Tasks task;
+
+    /** Logger is initiated. */
+    private static final Logger LOGGER =
+            Logger.getLogger(RegEx.class.getName());
 
     /**
      * Instantiates a new RegEx class.
@@ -50,17 +55,24 @@ public class RegEx {
 
         case PDA:
         default:
-            System.out.println("task not available");
+            LOGGER.warning("required task is not available.");
             break;
         }
     }
 
+    /**
+     * Creates the NFA. This function constructs and NFA recursively and
+     * returns the result.
+     *
+     * TODO: add return statement.
+     */
     private void createNFA() {
 
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
         System.out.println("Regex after concatenation: " + this.regex);
-        this.buildNFA(this.regex);
+        NFA ret = this.buildNFA(this.regex);
+        System.out.println("Final NFA: " + ret.NFATable.toString());
     }
 
     /**
@@ -136,6 +148,13 @@ public class RegEx {
         return str.toString();
     }
 
+    /**
+     * Builds the NFA.
+     * Recursively builds an NFA based on modified Thompson rules.
+     *
+     * @param regex the input RegEx to translate to NFA
+     * @return the NFA
+     */
     private NFA buildNFA(String regex) {
 
         /** Trivial case, NFA in this state is a basic NFA. */
@@ -154,7 +173,6 @@ public class RegEx {
         phrases = this.extractPhrases(regex);
         for (Phrase p : phrases) {
 
-            System.out.println("#Phrase# " + p.toString());
             nfas.add(this.buildNFA(p.string));
         }
 
@@ -169,9 +187,9 @@ public class RegEx {
             if (p.hasStar) {
 
                 NFA.starNFA(nfas.get(index));
-                System.out.println("Star result: " + nfas.get(index).NFATable.toString());
+                LOGGER.config("Star result: " +
+                        nfas.get(index).NFATable.toString());
             }
-
         }
 
         /** Start processing the operations. */
@@ -179,7 +197,7 @@ public class RegEx {
         if (p.nextOperation == Chars.concatenation) {
 
             combinedNFA = NFA.concatNFA(nfas);
-            System.out.println("Concat result: " + combinedNFA.NFATable.toString());
+            LOGGER.config("Concat result: " + combinedNFA.NFATable.toString());
             return combinedNFA;
         }
         else if (p.nextOperation == Chars.union) {
