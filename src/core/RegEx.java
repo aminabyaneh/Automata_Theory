@@ -70,7 +70,7 @@ public class RegEx {
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
         requestedNFA = this.buildNFA(this.regex);
-        System.out.println("Final NFA: " + requestedNFA.stmat.table.toString());
+        System.out.println("Final NFA: " + requestedNFA.stmat.toString());
     }
 
     /**
@@ -186,7 +186,7 @@ public class RegEx {
 
                 NFA.starNFA(nfas.get(index));
                 LOGGER.config("Star result: " +
-                        nfas.get(index).stmat.table.toString());
+                        nfas.get(index).stmat.toString());
             }
         }
 
@@ -197,12 +197,12 @@ public class RegEx {
         if (p.nextOperation == Chars.concatenation) {
 
             combinedNFA = NFA.concatNFA(nfas);
-            LOGGER.config("Concat result: " + combinedNFA.stmat.table.toString());
+            LOGGER.config("Concat result: " + combinedNFA.stmat.toString());
         }
         else if (p.nextOperation == Chars.union) {
 
             combinedNFA = NFA.unionNFA(nfas);
-            LOGGER.config("Union result: " + combinedNFA.stmat.table.toString());
+            LOGGER.config("Union result: " + combinedNFA.stmat.toString());
         }
         else if (p.nextOperation == Chars.none) {
 

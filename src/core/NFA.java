@@ -50,7 +50,6 @@ public class NFA {
     public NFA(Phrase p) {
 
         this.stmat = new StateTransitionMatrix();
-        stmat.table = new ArrayList<ArrayList<ArrayList<Integer>>>();
 
         ArrayList<ArrayList<Integer>> column = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> cell = new ArrayList<Integer>();
@@ -60,7 +59,7 @@ public class NFA {
         cell.add((int)p.string.charAt(0));
         column.add(cell);
 
-        stmat.table.add(column);
+        stmat.add(column);
 
         column = new ArrayList<ArrayList<Integer>>();
         cell = new ArrayList<Integer>();
@@ -70,7 +69,7 @@ public class NFA {
         cell.add(2);
         column.add(cell);
 
-        stmat.table.add(column);
+        stmat.add(column);
 
         column = new ArrayList<ArrayList<Integer>>();
         cell = new ArrayList<Integer>();
@@ -79,7 +78,7 @@ public class NFA {
         cell = new ArrayList<Integer>();
         column.add(cell);
 
-        stmat.table.add(column);
+        stmat.add(column);
     }
 
     /**
@@ -96,6 +95,7 @@ public class NFA {
                 convertStatesToIntegers(data.getFinalStates()));
         this.setStartState(data.
                 convertStateToInteger(data.getStartState()));
+        this.stmat.print(data.getStatesHM(), this.finalStates);
     }
 
     /**
@@ -216,9 +216,9 @@ public class NFA {
 
         for (NFA element : nfas) {
 
-            if (element.stmat.table.size() > maxSeen) {
+            if (element.stmat.size() > maxSeen) {
 
-                maxSeen = element.stmat.table.size();
+                maxSeen = element.stmat.size();
                 largest = element;
             }
         }
@@ -234,6 +234,28 @@ public class NFA {
     public ArrayList<Integer> getFinalStates() {
 
         return finalStates;
+    }
+
+    /**
+     * Gets the non final states.
+     *
+     * @return the non final states
+     */
+    public ArrayList<Integer> getNonFinalStates() {
+
+        ArrayList<Integer> nonFinalStates = new ArrayList<Integer>();
+
+        for (ArrayList<ArrayList<Integer>> column : this.stmat) {
+
+            int state = column.get(0).get(0);
+            if (state == 0)
+                continue;
+
+            if (!(this.getFinalStates().contains(state)))
+                nonFinalStates.add(state);
+        }
+
+        return nonFinalStates;
     }
 
     /**

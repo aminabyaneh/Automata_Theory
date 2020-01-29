@@ -170,14 +170,14 @@ public class NFAEntry {
             cell.add(letter);
             column.add(cell);
         }
-        stmat.table.add(column);
+        stmat.add(column);
 
         /** Initialize the stmat. */
         for (Integer state : intStates) {
 
             column = new ArrayList<ArrayList<Integer>>();
 
-            for (ArrayList<Integer> c : stmat.table.get(0)) {
+            for (ArrayList<Integer> c : stmat.get(0)) {
 
                 cell = new ArrayList<Integer>();
                 if (c.get(0) == 0)
@@ -186,12 +186,12 @@ public class NFAEntry {
                 column.add(cell);
             }
 
-            stmat.table.add(column);
+            stmat.add(column);
         }
 
         /** Fill the stmat. */
         int index = 0;
-        for (ArrayList<ArrayList<Integer>> col : stmat.table) {
+        for (ArrayList<ArrayList<Integer>> col : stmat) {
 
             if (col.get(0).get(0) == 0)
                 continue;
@@ -292,5 +292,15 @@ public class NFAEntry {
     public String [] getStates() {
 
         return this.states;
+    }
+
+    /**
+     * Get the states' hash map.
+     *
+     * @param states the new states
+     */
+    public HashMap<String, Integer> getStatesHM() {
+
+        return this.statesHM;
     }
 }

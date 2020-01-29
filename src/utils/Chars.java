@@ -9,4 +9,7 @@ public class Chars {
     public static Character epsilon = '\u03B5';
     public static Character concatenation = '.';
     public static Character none = '-';
+    public static Character comma = ',';
+    public static String space = " ";
+    public static String empty = "";
 }

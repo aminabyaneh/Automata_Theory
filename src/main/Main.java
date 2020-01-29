@@ -38,10 +38,6 @@ public class Main {
     private static void test() {
 
         System.out.println("Test sequence initiated...");
-
-        String a = "ab";
-        String [] str = a.split(",");
-        for (String s : str) System.out.println("#" + s);
     }
 
 }
