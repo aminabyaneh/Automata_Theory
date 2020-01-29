@@ -424,12 +424,12 @@ public class StateTransitionMatrix {
      * Retrieve an specific cell in NFA table
      * corresponding to letter and state.
      *
-     * @param nfa the input NFA in which the cell lies.
+     * @param table of state transition matrix.
      * @param state the input state
      * @param letter the alphabet letter
      * @return the cell found in the NFA table
      */
-    private static ArrayList<Integer> retrieveCell(
+    static ArrayList<Integer> retrieveCell(
             ArrayList<ArrayList<ArrayList<Integer>>> table,
             int state, int letter) {
 
@@ -443,6 +443,26 @@ public class StateTransitionMatrix {
         for (ArrayList<ArrayList<Integer>> column : table) {
             if (column.get(0).get(0) == state)
                 return column.get(index);
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve an specific column in NFA table
+     * corresponding to a state.
+     *
+     * @param table of state transition matrix.
+     * @param state the input state
+     * @return the column found in the NFA table
+     */
+    static ArrayList<ArrayList<Integer>> retrieveColumn(
+            ArrayList<ArrayList<ArrayList<Integer>>> table,
+            int state) {
+
+        for (ArrayList<ArrayList<Integer>> column : table) {
+            if (column.get(0).get(0) == state)
+                return column;
         }
 
         return null;
