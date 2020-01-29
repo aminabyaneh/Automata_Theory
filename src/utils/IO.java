@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import entries.CFGEntry;
@@ -15,7 +16,7 @@ public class IO {
     private Scanner sc;
 
     /** The data type to detect function from main. */
-    private Functions dataType;
+    private DataType dataType;
 
     /** The input data. */
     Object data;
@@ -28,11 +29,10 @@ public class IO {
         /** Initiate scanner object. */
         this.sc = new Scanner(System.in);
 
-        Functions func = readInput();
-        this.setDataType(func);
+        this.dataType = readDataType();
 
         /** check the output for next action. */
-        switch (func) {
+        switch (this.dataType) {
 
         case CFG:
             this.data = readCFG();
@@ -56,19 +56,9 @@ public class IO {
      *
      * @return the data type
      */
-    public Functions getDataType() {
+    public DataType getDataType() {
 
         return dataType;
-    }
-
-    /**
-     * Sets the data type.
-     *
-     * @param dataType the new data type
-     */
-    public void setDataType(Functions dataType) {
-
-        this.dataType = dataType;
     }
 
     /**
@@ -76,7 +66,7 @@ public class IO {
      *
      * @return the functions
      */
-    private Functions readInput() {
+    private DataType readDataType() {
 
         String input = this.sc.nextLine();
 
@@ -84,14 +74,14 @@ public class IO {
         switch (input) {
 
         case "CFG":
-            return Functions.CFG;
+            return DataType.CFG;
         case "NFA":
-            return Functions.NFA;
+            return DataType.NFA;
         case "RegEx":
-            return Functions.RegEx;
+            return DataType.RegEx;
 
         default:
-            return Functions.Unknown;
+            return DataType.Unknown;
         }
     }
 
@@ -113,9 +103,38 @@ public class IO {
      */
     private NFAEntry readNFA() {
 
-        return null;
+        NFAEntry inputNFA = new NFAEntry();
 
-        //TODO
+        /** Read the start state. */
+        String str = sc.nextLine();
+        inputNFA.setStartState(str);
+
+        /** Read all the final states. */
+        str = sc.nextLine();
+        inputNFA.setFinalStates(str.split("\\s+"));
+
+        /** Read the alphabet. */
+        str = sc.nextLine();
+        inputNFA.setAlphabet(str.split("\\s+"));
+
+        /** The states are required. */
+        str = sc.nextLine();
+        inputNFA.setStates(str.split("\\s+"));
+
+        /** Read matrix until command arrives. */
+        str = sc.nextLine();
+        ArrayList<String> matrix = new ArrayList<String>();
+
+        while (this.taskToTasks(str) == Tasks.Unknown) {
+
+            matrix.add(str);
+            str = sc.nextLine();
+        }
+
+        inputNFA.setStateTransitionMat(matrix);
+        inputNFA.setTask(this.taskToTasks(str));
+
+        return inputNFA;
     }
 
     /**

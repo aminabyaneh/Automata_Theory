@@ -12,6 +12,8 @@ import utils.Tasks;
  * The Class RegEx.
  * This class handles related conversions
  * and optimizations to regular expression inputs.
+ *
+ * TODO: handle output method.
  */
 public class RegEx {
 
@@ -68,7 +70,7 @@ public class RegEx {
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
         requestedNFA = this.buildNFA(this.regex);
-        System.out.println("Final NFA: " + requestedNFA.nfaTable.table.toString());
+        System.out.println("Final NFA: " + requestedNFA.stmat.table.toString());
     }
 
     /**
@@ -178,13 +180,13 @@ public class RegEx {
         for (Phrase p : phrases) {
 
             int index = phrases.indexOf(p);
-            Table.addEpsilon(nfas.get(index));
+            StateTransitionMatrix.addEpsilon(nfas.get(index));
 
             if (p.hasStar) {
 
                 NFA.starNFA(nfas.get(index));
                 LOGGER.config("Star result: " +
-                        nfas.get(index).nfaTable.table.toString());
+                        nfas.get(index).stmat.table.toString());
             }
         }
 
@@ -195,12 +197,12 @@ public class RegEx {
         if (p.nextOperation == Chars.concatenation) {
 
             combinedNFA = NFA.concatNFA(nfas);
-            LOGGER.config("Concat result: " + combinedNFA.nfaTable.table.toString());
+            LOGGER.config("Concat result: " + combinedNFA.stmat.table.toString());
         }
         else if (p.nextOperation == Chars.union) {
 
             combinedNFA = NFA.unionNFA(nfas);
-            LOGGER.config("Union result: " + combinedNFA.nfaTable.table.toString());
+            LOGGER.config("Union result: " + combinedNFA.stmat.table.toString());
         }
         else if (p.nextOperation == Chars.none) {
 

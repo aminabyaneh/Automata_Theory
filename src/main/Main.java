@@ -1,8 +1,8 @@
 package main;
 
-import java.util.ArrayList;
-
+import core.NFA;
 import core.RegEx;
+import entries.NFAEntry;
 import entries.RegExEntry;
 import utils.IO;
 
@@ -26,6 +26,9 @@ public class Main {
             regEx.taskHandler();
             break;
 
+        case NFA:
+            NFA nfa = new NFA((NFAEntry)ioHandler.getData());
+            nfa.taskHandler();
         default:
             break;
         }
@@ -36,15 +39,9 @@ public class Main {
 
         System.out.println("Test sequence initiated...");
 
-        ArrayList<Integer> cell = new ArrayList<Integer>();
-        cell.add(1);
-        cell.add(2);
-        cell.add(3);
-        cell.add(4);
-        cell.add(5);
-
-        cell.add(cell.size(), 0);
-        System.out.println(cell.toString());
+        String a = "ab";
+        String [] str = a.split(",");
+        for (String s : str) System.out.println("#" + s);
     }
 
 }

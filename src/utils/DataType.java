@@ -1,6 +1,6 @@
 package utils;
 
-public enum Functions {
+public enum DataType {
 	
 	CFG,
 	NFA,

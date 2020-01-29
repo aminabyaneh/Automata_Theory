@@ -3,16 +3,28 @@ package core;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import entries.NFAEntry;
 import utils.Phrase;
+import utils.Tasks;
 
 /**
  * The Class NFA.
  *
+ * TODO: make stmat private and pass only tables in functions.
  */
 public class NFA {
 
     /** The NFA table. */
-    Table nfaTable;
+    StateTransitionMatrix stmat;
+
+    /** The final states. */
+    private ArrayList<Integer> finalStates;
+
+    /** The start state. */
+    private Integer startState;
+
+    /** The task. */
+    private Tasks task;
 
     /** Logger is initiated. */
     @SuppressWarnings("unused")
@@ -37,8 +49,8 @@ public class NFA {
      */
     public NFA(Phrase p) {
 
-        this.nfaTable = new Table();
-        nfaTable.table = new ArrayList<ArrayList<ArrayList<Integer>>>();
+        this.stmat = new StateTransitionMatrix();
+        stmat.table = new ArrayList<ArrayList<ArrayList<Integer>>>();
 
         ArrayList<ArrayList<Integer>> column = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> cell = new ArrayList<Integer>();
@@ -48,7 +60,7 @@ public class NFA {
         cell.add((int)p.string.charAt(0));
         column.add(cell);
 
-        nfaTable.table.add(column);
+        stmat.table.add(column);
 
         column = new ArrayList<ArrayList<Integer>>();
         cell = new ArrayList<Integer>();
@@ -58,7 +70,7 @@ public class NFA {
         cell.add(2);
         column.add(cell);
 
-        nfaTable.table.add(column);
+        stmat.table.add(column);
 
         column = new ArrayList<ArrayList<Integer>>();
         cell = new ArrayList<Integer>();
@@ -67,7 +79,58 @@ public class NFA {
         cell = new ArrayList<Integer>();
         column.add(cell);
 
-        nfaTable.table.add(column);
+        stmat.table.add(column);
+    }
+
+    /**
+     * Instantiates a new NFA using entry data.
+     *
+     * @param nfaEntry the NFA entry
+     */
+    public NFA(NFAEntry data) {
+
+        this.task = data.getTask();
+        this.stmat = data.convertToSTMat();
+
+        this.setFinalStates(data.
+                convertStatesToIntegers(data.getFinalStates()));
+        this.setStartState(data.
+                convertStateToInteger(data.getStartState()));
+    }
+
+    /**
+     * Task handler.
+     */
+    public void taskHandler() {
+
+        switch (this.task) {
+
+        case RegEx:
+            //TODO: implement later.
+            break;
+
+        case DFA:
+            this.createMinimumDFA();
+            break;
+
+        case NFA:
+        case PDA:
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Creates the minimum DFA.
+     */
+    private void createMinimumDFA() {
+
+        DFA minDFA = new DFA();
+
+        /** DFA builds a minimum DFA. */
+        minDFA.makeMin(this);
+
+        /** The answer is minDFA. */
     }
 
     /**
@@ -88,13 +151,13 @@ public class NFA {
                 continue;
 
             /** Rename the second one states as in continue of the first one. */
-            Table.renameStates(nfaMerged, nfa);
+            StateTransitionMatrix.renameStates(nfaMerged, nfa);
 
             /** Add new alphabet letters to the second table. */
-            Table.expandAlphabets(nfaMerged, nfa);
+            StateTransitionMatrix.expandAlphabets(nfaMerged, nfa);
 
             /** Calculates the union of two NFAs. */
-            Table.buildUnionNFA(nfaMerged, nfa);
+            StateTransitionMatrix.buildUnionNFA(nfaMerged, nfa);
         }
 
         return nfaMerged;
@@ -118,13 +181,13 @@ public class NFA {
                 continue;
 
             /** Rename the second one states as in continue of the first one. */
-            Table.renameStates(nfaMerged, nfa);
+            StateTransitionMatrix.renameStates(nfaMerged, nfa);
 
             /** Add new alphabet letters to the second table. */
-            Table.expandAlphabets(nfaMerged, nfa);
+            StateTransitionMatrix.expandAlphabets(nfaMerged, nfa);
 
             /** Calculates the concatenation of two NFAs. */
-            Table.buildConcatNFA(nfaMerged, nfa);
+            StateTransitionMatrix.buildConcatNFA(nfaMerged, nfa);
         }
 
         return nfaMerged;
@@ -137,15 +200,8 @@ public class NFA {
      */
     public static void starNFA(NFA nfaA) {
 
-        ArrayList<ArrayList<Integer>> columnEnd;
-        columnEnd = nfaA.nfaTable.table.get(nfaA.nfaTable.table.size() - 1);
-
-        ArrayList<Integer> cell = columnEnd.get(columnEnd.size() - 1);
-        if (!cell.contains(1))
-            cell.add(1);
+        StateTransitionMatrix.buildStarNFA(nfaA);
     }
-
-
 
     /**
      * Gets the largest NFA out of an ArrayList.
@@ -160,13 +216,51 @@ public class NFA {
 
         for (NFA element : nfas) {
 
-            if (element.nfaTable.table.size() > maxSeen) {
+            if (element.stmat.table.size() > maxSeen) {
 
-                maxSeen = element.nfaTable.table.size();
+                maxSeen = element.stmat.table.size();
                 largest = element;
             }
         }
 
         return largest;
+    }
+
+    /**
+     * Gets the final states.
+     *
+     * @return the final states
+     */
+    public ArrayList<Integer> getFinalStates() {
+
+        return finalStates;
+    }
+
+    /**
+     * Sets the final states.
+     *
+     * @param finalStates the new final states
+     */
+    public void setFinalStates(ArrayList<Integer> finalStates) {
+
+        this.finalStates = finalStates;
+    }
+
+    /**
+     * Gets the start state.
+     *
+     * @return the start state
+     */
+    public Integer getStartState() {
+        return startState;
+    }
+
+    /**
+     * Sets the start state.
+     *
+     * @param startState the new start state
+     */
+    public void setStartState(Integer startState) {
+        this.startState = startState;
     }
 }

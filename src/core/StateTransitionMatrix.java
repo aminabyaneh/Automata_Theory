@@ -3,11 +3,16 @@ package core;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Table {
+public class StateTransitionMatrix {
 
-    ArrayList<ArrayList<ArrayList<Integer>>> table;
+    /** The state table. */
+    public ArrayList<ArrayList<ArrayList<Integer>>> table;
 
-    public Table() {
+    /**
+     * Instantiates a new table.
+     *
+     */
+    public StateTransitionMatrix() {
 
         table = new ArrayList<ArrayList<ArrayList<Integer>>>();
     }
@@ -20,9 +25,9 @@ public class Table {
      */
     public static void addEpsilon(NFA nfaA) {
 
-        if (!(Table.hasLetter(nfaA, NFA.epsilon))) {
+        if (!(StateTransitionMatrix.hasLetter(nfaA, NFA.epsilon))) {
 
-            Table.addLetter(nfaA, NFA.epsilon);
+            StateTransitionMatrix.addLetter(nfaA, NFA.epsilon);
         }
     }
 
@@ -36,7 +41,7 @@ public class Table {
     private static boolean hasLetter(NFA nfa, int letter) {
 
         ArrayList<ArrayList<Integer>> column;
-        column = nfa.nfaTable.table.get(0);
+        column = nfa.stmat.table.get(0);
 
         for (ArrayList<Integer> cell : column) {
 
@@ -56,22 +61,22 @@ public class Table {
     static void renameStates(NFA nfaA, NFA nfaB) {
 
         int maxStateNumber = 0;
-        for (ArrayList<ArrayList<Integer>> column : nfaA.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> column : nfaA.stmat.table) {
 
             if (column.get(0).get(0) >= maxStateNumber)
                 maxStateNumber = column.get(0).get(0);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : nfaB.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> column : nfaB.stmat.table) {
 
-            if (nfaB.nfaTable.table.indexOf(column) == 0)
+            if (nfaB.stmat.table.indexOf(column) == 0)
                 continue;
 
             Integer oldState = column.get(0).get(0);
             Integer newState = maxStateNumber + oldState;
 
             /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : nfaB.nfaTable.table)
+            for (ArrayList<ArrayList<Integer>> c : nfaB.stmat.table)
                 for (ArrayList<Integer> cell : c)
                     if (cell.contains(oldState))
                         cell.set(cell.indexOf(oldState), newState);
@@ -86,15 +91,15 @@ public class Table {
      */
     static void expandAlphabets(NFA nfaA, NFA nfaB) {
 
-        ArrayList<Integer> alphabetA = Table.extractAlphabet(nfaA);
-        ArrayList<Integer> alphabetB = Table.extractAlphabet(nfaB);
+        ArrayList<Integer> alphabetA = StateTransitionMatrix.extractAlphabet(nfaA);
+        ArrayList<Integer> alphabetB = StateTransitionMatrix.extractAlphabet(nfaB);
 
         for (Integer letter : alphabetB) {
 
             if (alphabetA.contains(letter))
                 continue;
 
-            Table.addLetter(nfaA, letter);
+            StateTransitionMatrix.addLetter(nfaA, letter);
         }
     }
 
@@ -107,7 +112,7 @@ public class Table {
     private static ArrayList<Integer> extractAlphabet(NFA nfa) {
 
         ArrayList<Integer> alphabet = new ArrayList<Integer>();
-        for (ArrayList<Integer> cell : nfa.nfaTable.table.get(0)) {
+        for (ArrayList<Integer> cell : nfa.stmat.table.get(0)) {
 
             if (cell.get(0) == 0)
                 continue;
@@ -125,9 +130,9 @@ public class Table {
     private static void addLetter(NFA nfaA, int letter) {
 
         ArrayList<Integer> cell;
-        for (ArrayList<ArrayList<Integer>> c : nfaA.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> c : nfaA.stmat.table) {
 
-            if (nfaA.nfaTable.table.indexOf(c) == 0) {
+            if (nfaA.stmat.table.indexOf(c) == 0) {
 
                 cell = new ArrayList<Integer>();
                 cell.add(letter);
@@ -158,7 +163,7 @@ public class Table {
      */
     static void buildConcatNFA(NFA nfaA, NFA nfaB) {
 
-        for (ArrayList<ArrayList<Integer>> columnB : nfaB.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> columnB : nfaB.stmat.table) {
 
             /** Skip alphabet column. */
             if (columnB.get(0).get(0) == 0)
@@ -169,11 +174,11 @@ public class Table {
 
             /** Case that it is the first state it should
              *  be entered an edge e via previous end. */
-            if (nfaB.nfaTable.table.indexOf(columnB) == 1) {
+            if (nfaB.stmat.table.indexOf(columnB) == 1) {
 
                 /** Last column must enter the state column via epsilon. */
                 ArrayList<ArrayList<Integer>> lastColumn =
-                        nfaA.nfaTable.table.get(nfaA.nfaTable.table.size() - 1);
+                        nfaA.stmat.table.get(nfaA.stmat.table.size() - 1);
 
                 ArrayList<Integer> epsilonCell =
                         lastColumn.get(lastColumn.size() - 1);
@@ -195,8 +200,9 @@ public class Table {
 
                 if (alphabetB.contains(letter)) {
 
-                    changeCell = Table.retrieveCell(nfaB,
-                            columnB.get(0).get(0), letter);
+                    changeCell = StateTransitionMatrix.
+                            retrieveCell(nfaB.stmat.table,
+                                    columnB.get(0).get(0), letter);
 
                     newColumn.add(changeCell);
                 }
@@ -207,7 +213,7 @@ public class Table {
                 }
             }
 
-            nfaA.nfaTable.table.add(newColumn);
+            nfaA.stmat.table.add(newColumn);
         }
     }
 
@@ -222,12 +228,12 @@ public class Table {
         ArrayList<Integer> startStates = new ArrayList<Integer>();
         ArrayList<Integer> endStates = new ArrayList<Integer>();
 
-        startStates.add(nfaA.nfaTable.table.get(1).get(0).get(0) + 1);
-        startStates.add(nfaB.nfaTable.table.get(1).get(0).get(0) + 1);
+        startStates.add(nfaA.stmat.table.get(1).get(0).get(0) + 1);
+        startStates.add(nfaB.stmat.table.get(1).get(0).get(0) + 1);
 
-        endStates.add(nfaA.nfaTable.table.get(nfaA.nfaTable.table.size() - 1)
+        endStates.add(nfaA.stmat.table.get(nfaA.stmat.table.size() - 1)
                 .get(0).get(0) + 1);
-        endStates.add(nfaB.nfaTable.table.get(nfaB.nfaTable.table.size() - 1)
+        endStates.add(nfaB.stmat.table.get(nfaB.stmat.table.size() - 1)
                 .get(0).get(0) + 1);
 
         ArrayList<Integer> changeCell = null;
@@ -236,7 +242,7 @@ public class Table {
         ArrayList<Integer> alphabetA = extractAlphabet(nfaA);
         ArrayList<Integer> alphabetB = extractAlphabet(nfaB);
 
-        for (ArrayList<ArrayList<Integer>> columnB : nfaB.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> columnB : nfaB.stmat.table) {
 
             /** Skip alphabet column. */
             if (columnB.get(0).get(0) == 0)
@@ -254,8 +260,9 @@ public class Table {
 
                 if (alphabetB.contains(letter)) {
 
-                    changeCell = Table.retrieveCell(nfaB,
-                            columnB.get(0).get(0), letter);
+                    changeCell = StateTransitionMatrix.
+                            retrieveCell(nfaB.stmat.table,
+                                    columnB.get(0).get(0), letter);
 
                     newColumn.add(changeCell);
                 }
@@ -266,17 +273,17 @@ public class Table {
                 }
             }
 
-            nfaA.nfaTable.table.add(newColumn);
+            nfaA.stmat.table.add(newColumn);
         }
 
-        /** Increment state numbers. */
-        Table.incrementStateNumbers(nfaA);
+        /** Increment state numbers to add the new states. */
+        StateTransitionMatrix.incrementStateNumbers(nfaA);
 
         /** Add two new states for the start and for the end. */
         ArrayList<ArrayList<Integer>> startColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> firstColumn =
-                nfaA.nfaTable.table.get(1);
+                nfaA.stmat.table.get(1);
 
         Integer index = -1;
         for (ArrayList<Integer> c : firstColumn) {
@@ -295,7 +302,7 @@ public class Table {
         ArrayList<ArrayList<Integer>> endColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> lastColumn =
-                nfaA.nfaTable.table.get(nfaA.nfaTable.table.size() - 1);
+                nfaA.stmat.table.get(nfaA.stmat.table.size() - 1);
 
         index = -1;
         for (ArrayList<Integer> c : lastColumn) {
@@ -308,15 +315,84 @@ public class Table {
             endColumn.add(changeCell);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : nfaA.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> column : nfaA.stmat.table) {
 
             if (endStates.contains(column.get(0).get(0)))
                 column.get(column.size() - 1).add(endColumn.get(0).get(0));
         }
 
         /** Add start and end column to main NFA. */
-        nfaA.nfaTable.table.add(1, startColumn);
-        nfaA.nfaTable.table.add(nfaA.nfaTable.table.size(), endColumn);
+        nfaA.stmat.table.add(1, startColumn);
+        nfaA.stmat.table.add(nfaA.stmat.table.size(), endColumn);
+    }
+
+    /**
+     * Builds the star NFA.
+     *
+     * @param nfaA the NFA A
+     */
+    static void buildStarNFA(NFA nfaA) {
+
+        ArrayList<Integer> changeCell = null;
+
+        /** Add the feed back epsilon arrow. */
+        ArrayList<ArrayList<Integer>> columnEnd;
+        columnEnd = nfaA.stmat.table.get(nfaA.stmat.table.size() - 1);
+
+        ArrayList<Integer> cell = columnEnd.get(columnEnd.size() - 1);
+        if (!cell.contains(1))
+            cell.add(1);
+
+        /** Increment state numbers to add the new states. */
+        StateTransitionMatrix.incrementStateNumbers(nfaA);
+
+        /** Add two new states for the start and for the end. */
+        ArrayList<ArrayList<Integer>> startColumn =
+                new ArrayList<ArrayList<Integer>>();
+        ArrayList<ArrayList<Integer>> firstColumn =
+                nfaA.stmat.table.get(1);
+
+        ArrayList<ArrayList<Integer>> endColumn =
+                new ArrayList<ArrayList<Integer>>();
+        ArrayList<ArrayList<Integer>> lastColumn =
+                nfaA.stmat.table.get(nfaA.stmat.table.size() - 1);
+
+        Integer index = -1;
+        for (ArrayList<Integer> c : firstColumn) {
+
+            index++;
+            changeCell = new ArrayList<Integer>();
+
+            if (index == 0) {
+
+                changeCell.add(c.get(0) - 1);
+            }
+            else if (index == firstColumn.size() - 1) {
+
+                changeCell.add(firstColumn.get(0).get(0));
+                changeCell.add(lastColumn.get(0).get(0) + 1);
+            }
+
+            startColumn.add(changeCell);
+        }
+
+        index = -1;
+        for (ArrayList<Integer> c : lastColumn) {
+
+            index++;
+            changeCell = new ArrayList<Integer>();
+            if (index == 0)
+                changeCell.add(c.get(0) + 1);
+
+            endColumn.add(changeCell);
+        }
+
+        /** Add epsilon arrow from last column to end column. */
+        lastColumn.get(lastColumn.size() - 1).add(endColumn.get(0).get(0));
+
+        /** Add start and end column to main NFA. */
+        nfaA.stmat.table.add(1, startColumn);
+        nfaA.stmat.table.add(nfaA.stmat.table.size(), endColumn);
     }
 
     /**
@@ -326,8 +402,8 @@ public class Table {
      */
     private static void incrementStateNumbers(NFA nfa) {
 
-        Collections.reverse(nfa.nfaTable.table);
-        for (ArrayList<ArrayList<Integer>> column : nfa.nfaTable.table) {
+        Collections.reverse(nfa.stmat.table);
+        for (ArrayList<ArrayList<Integer>> column : nfa.stmat.table) {
 
             Integer oldState = column.get(0).get(0);
             Integer newState = 1 + oldState;
@@ -336,12 +412,12 @@ public class Table {
                 continue;
 
             /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : nfa.nfaTable.table)
+            for (ArrayList<ArrayList<Integer>> c : nfa.stmat.table)
                 for (ArrayList<Integer> cell : c)
                     if (cell.contains(oldState))
                         cell.set(cell.indexOf(oldState), newState);
         }
-        Collections.reverse(nfa.nfaTable.table);
+        Collections.reverse(nfa.stmat.table);
     }
 
     /**
@@ -353,21 +429,22 @@ public class Table {
      * @param letter the alphabet letter
      * @return the cell found in the NFA table
      */
-    private static ArrayList<Integer> retrieveCell(NFA nfa, int state, int letter) {
+    private static ArrayList<Integer> retrieveCell(
+            ArrayList<ArrayList<ArrayList<Integer>>> table,
+            int state, int letter) {
 
         int index = 0;
-        for (ArrayList<Integer> cell : nfa.nfaTable.table.get(0)) {
+        for (ArrayList<Integer> cell : table.get(0)) {
 
             if (cell.get(0) == letter)
-                index = nfa.nfaTable.table.get(0).indexOf(cell);
+                index = table.get(0).indexOf(cell);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : nfa.nfaTable.table) {
+        for (ArrayList<ArrayList<Integer>> column : table) {
             if (column.get(0).get(0) == state)
                 return column.get(index);
         }
 
         return null;
     }
-
 }
