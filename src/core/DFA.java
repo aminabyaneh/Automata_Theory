@@ -10,6 +10,12 @@ public class DFA {
     /** The NFA state transition matrix. */
     StateTransitionMatrix nfaSTM;
 
+    /** The final states. */
+    private ArrayList<Integer> finalStates;
+
+    /** The start state. */
+    private Integer startState;
+
     /**
      * Instantiates a new DFA.
      */
@@ -19,28 +25,39 @@ public class DFA {
         this.stmax = new StateTransitionMatrix();
     }
 
+    public void buildDFA(NFA nfa) {
+
+    }
+
     /**
      * Makes the minimum DFA out of an NFA.
      *
      * @param nfa the input NFA which is to be minimized
      */
-    public void makeMin(NFA nfa) {
-
-        /** Extract required info. */
-        this.nfaSTM = nfa.stmat;
+    public void makeMin() {
 
         /** Create first partition. */
         Partition partition  = new Partition();
 
-        partition.getSets().add(nfa.getFinalStates());
-        partition.getSets().add(nfa.getNonFinalStates());
+        partition.getSets().add(this.getFinalStates());
+        partition.getSets().add(this.getNonFinalStates());
 
         /** Try to build P_k while P_k and P_k-1 are different. */
         partition = this.maximumPartitioning(partition);
         System.out.println("Final Partition: " + partition.toString());
 
         /** Convert final partition to DFA. */
-        this.createDFA(partition);
+        this.partitionToDFA(partition);
+    }
+
+    private ArrayList<Integer> getNonFinalStates() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    private ArrayList<Integer> getFinalStates() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /**
@@ -48,9 +65,69 @@ public class DFA {
      *
      * @param partition the final partition
      */
-    private void createDFA(Partition partition) {
+    private void partitionToDFA(Partition partition) {
 
+        /** First column is the same as NFA except for epsilon. */
+        ArrayList<ArrayList<Integer>> newColumn =
+                new ArrayList<ArrayList<Integer>>();
+        ArrayList<Integer> newCell;
 
+        for (ArrayList<Integer> cell : this.nfaSTM.get(0)) {
+
+            if (cell.get(0) == NFA.epsilon)
+                continue;
+
+            newCell = new ArrayList<Integer>();
+            newCell.add(cell.get(0));
+            newColumn.add(cell);
+        }
+        this.stmax.add(newColumn);
+
+        /** Initialize the DFA state transition matrix. */
+        for (ArrayList<Integer> set : partition.getSets()) {
+
+            newColumn = new ArrayList<ArrayList<Integer>>();
+
+            for (ArrayList<Integer> c : this.nfaSTM.get(0)) {
+
+                if (c.get(0) == NFA.epsilon)
+                    continue;
+
+                newCell = new ArrayList<Integer>();
+                newColumn.add(newCell);
+            }
+
+            this.stmax.add(newColumn);
+        }
+
+        /** Fill the state transition matrix based on partitions. */
+        //        int index = 0;
+        //        for (ArrayList<ArrayList<Integer>> col : stmat) {
+        //
+        //            if (col.get(0).get(0) == 0)
+        //                continue;
+        //
+        //            String [] str = this.getStateTransitionMat().
+        //                    get(index).split("\\s+");
+        //
+        //            int cellIndex = 0;
+        //            for (String s : str) {
+        //
+        //                cellIndex++;
+        //                if (s.charAt(0) == Chars.none) {
+        //
+        //                    col.get(cellIndex).clear();
+        //                }
+        //                else {
+        //
+        //                    String [] st = s.split(",");
+        //                    col.get(cellIndex).addAll(this.
+        //                            convertStatesToIntegers(st));
+        //                }
+        //            }
+        //
+        //            index++;
+        //        }
     }
 
     /**
@@ -136,9 +213,9 @@ public class DFA {
             Integer state1, Integer state2) {
 
         ArrayList<ArrayList<Integer>> col1 = StateTransitionMatrix.
-                retrieveColumn(this.nfaSTM, state1);
+                retrieveColumn(this.stmax, state1);
         ArrayList<ArrayList<Integer>> col2 = StateTransitionMatrix.
-                retrieveColumn(this.nfaSTM, state2);
+                retrieveColumn(this.stmax, state2);
 
         System.out.println("#Col1: " + col1.toString());
         System.out.println("#Col2: " + col2.toString());

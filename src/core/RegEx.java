@@ -14,6 +14,7 @@ import utils.Tasks;
  * and optimizations to regular expression inputs.
  *
  * TODO: handle output method.
+ * TODO: test RegEx to minimum DFA using the web!
  */
 public class RegEx {
 
@@ -22,8 +23,6 @@ public class RegEx {
 
     /** The task in which the code has to perform. */
     private Tasks task;
-
-    private NFA requestedNFA;
 
     /** Logger is initiated. */
     private static final Logger LOGGER =
@@ -48,11 +47,17 @@ public class RegEx {
         case RegEx:
             System.out.println(this.regex);
             break;
+
         case NFA:
-            this.createNFA();
+            NFA requestedNFA = this.createNFA();
+            requestedNFA.stmat.print();
             break;
 
         case DFA:
+            NFA nfa = this.createNFA();
+            DFA minDFA = nfa.createMinimumDFA();
+            minDFA.stmax.print();
+
         case PDA:
         default:
             break;
@@ -65,12 +70,15 @@ public class RegEx {
      *
      * TODO: add return statement.
      */
-    private void createNFA() {
+    private NFA createNFA() {
 
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
-        requestedNFA = this.buildNFA(this.regex);
+
+        NFA requestedNFA = this.buildNFA(this.regex);
         System.out.println("Final NFA: " + requestedNFA.stmat.toString());
+
+        return requestedNFA;
     }
 
     /**

@@ -26,6 +26,9 @@ public class NFA {
     /** The task. */
     private Tasks task;
 
+    /** The input data. */
+    private NFAEntry inputData;
+
     /** Logger is initiated. */
     @SuppressWarnings("unused")
     private static final Logger LOGGER =
@@ -88,14 +91,14 @@ public class NFA {
      */
     public NFA(NFAEntry data) {
 
-        this.task = data.getTask();
-        this.stmat = data.convertToSTMat();
+        this.inputData = data;
+        this.task = this.inputData.getTask();
+        this.stmat = this.inputData.convertToSTMat();
 
         this.setFinalStates(data.
                 convertStatesToIntegers(data.getFinalStates()));
         this.setStartState(data.
                 convertStateToInteger(data.getStartState()));
-        this.stmat.print(data.getStatesHM(), this.finalStates);
     }
 
     /**
@@ -110,10 +113,16 @@ public class NFA {
             break;
 
         case DFA:
-            this.createMinimumDFA();
+            DFA requestedDFA = this.createMinimumDFA();
+            requestedDFA.stmax.print(this.inputData.getStatesHM(),
+                    this.finalStates);
             break;
 
         case NFA:
+            this.stmat.print(this.inputData.getStatesHM(),
+                    this.finalStates);
+            break;
+
         case PDA:
         default:
             break;
@@ -123,14 +132,18 @@ public class NFA {
     /**
      * Creates the minimum DFA.
      */
-    private void createMinimumDFA() {
+    public DFA createMinimumDFA() {
 
-        DFA minDFA = new DFA();
+        DFA dfa = new DFA();
 
         /** DFA builds a minimum DFA. */
-        minDFA.makeMin(this);
+        dfa.buildDFA(this);
+
+        /** DFA builds a minimum DFA. */
+        dfa.makeMin();
 
         /** The answer is minDFA. */
+        return dfa;
     }
 
     /**
