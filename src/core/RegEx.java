@@ -37,10 +37,13 @@ public class RegEx {
     public RegEx(RegExEntry data) {
 
         /** Set the main variables. */
-        this.regex = data.getInputRegEx();
+        this.regex = data.getInput();
         this.task = data.getTask();
     }
 
+    /**
+     * Task handler for incoming tasks.
+     */
     public void taskHandler() {
 
         switch (this.task) {
@@ -57,7 +60,7 @@ public class RegEx {
         case DFA:
             NFA nfa = this.createNFA();
             DFA minDFA = nfa.createMinimumDFA();
-            minDFA.stmax.print();
+            minDFA.stmat.print();
 
         case PDA:
         default:
@@ -69,15 +72,17 @@ public class RegEx {
      * Creates the NFA. This function constructs and NFA recursively and
      * returns the result.
      *
-     * TODO: add return statement.
      */
     private NFA createNFA() {
 
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
 
+        NFA requestedNFA = new NFA();
+
         /** Build NFA from RegEx recursively. */
-        NFA requestedNFA = this.buildNFA(this.regex);
+        requestedNFA.build(this.regex);
+
 
         /** Set start and final state as they are first and last state. */
         ArrayList<Integer> finalStates = new ArrayList<Integer>();
@@ -86,7 +91,7 @@ public class RegEx {
         requestedNFA.setStartState(1);
         requestedNFA.setFinalStates(finalStates );
 
-        System.out.println("Final NFA: " + requestedNFA.stmat.toString());
+        LOGGER.info("Final NFA: " + requestedNFA.stmat.toString() + "\n");
         return requestedNFA;
     }
 
@@ -164,81 +169,12 @@ public class RegEx {
     }
 
     /**
-     * Builds the NFA.
-     * Recursively builds an NFA based on modified Thompson rules.
-     *
-     * @param regex the input RegEx to translate to NFA
-     * @return the NFA
-     */
-    private NFA buildNFA(String regex) {
-
-        System.out.println("\n\nBuilding NFA....");
-
-        /** Trivial case, NFA in this state is a basic NFA. */
-        if (regex.length() == 1) {
-
-            Phrase p = new Phrase(regex);
-            NFA trivialNFA = new NFA(p);
-
-            return trivialNFA;
-        }
-
-        ArrayList<Phrase> phrases = new ArrayList<Phrase>();
-        ArrayList<NFA> nfas = new ArrayList<NFA>();
-
-        /** Extract all the phrases and then call recursively on build. */
-        phrases = this.extractPhrases(regex);
-        for (Phrase p : phrases) {
-
-            nfas.add(this.buildNFA(p.string));
-        }
-
-
-        /** Checking for star in phrases and applying it to NFA. */
-
-        for (Phrase p : phrases) {
-
-            int index = phrases.indexOf(p);
-            StateTransitionMatrix.addEpsilon(nfas.get(index));
-
-            if (p.hasStar) {
-
-                NFA.starNFA(nfas.get(index));
-                LOGGER.config("Star result: " +
-                        nfas.get(index).stmat.toString());
-            }
-        }
-
-        /** Start processing the operations. */
-        NFA combinedNFA = new NFA();
-        Phrase p = phrases.get(0);
-
-        if (p.nextOperation == Chars.concatenation) {
-
-            combinedNFA = NFA.concatNFA(nfas);
-            LOGGER.config("Concat result: " + combinedNFA.stmat.toString());
-        }
-        else if (p.nextOperation == Chars.union) {
-
-            combinedNFA = NFA.unionNFA(nfas);
-            LOGGER.config("Union result: " + combinedNFA.stmat.toString());
-        }
-        else if (p.nextOperation == Chars.none) {
-
-            /** Only one phrase exists in this case so return the NFA. */
-            combinedNFA = nfas.get(0);
-        }
-
-        return combinedNFA;
-    }
-
-    /**
      * Extract phrases.
      *
      * @param regex
      * @return the array list of all phrases
      */
-    private ArrayList<Phrase> extractPhrases(String regex) {
+    static ArrayList<Phrase> extractPhrases(String regex) {
 
         ArrayList<Phrase> phrases = new ArrayList<Phrase>();
 
@@ -262,7 +198,7 @@ public class RegEx {
                         parenthesis += 1;
                 }
 
-                Phrase p = this.buildPhrase(regex, i, j);
+                Phrase p = RegEx.buildPhrase(regex, i, j);
                 phrases.add(p);
 
                 i = j;
@@ -282,7 +218,7 @@ public class RegEx {
      * @param j the j final index
      * @return the phrase
      */
-    private Phrase buildPhrase(String regex, int i, int j) {
+    static Phrase buildPhrase(String regex, int i, int j) {
 
         Phrase p = new Phrase();
         p.string = regex.substring(i + 1, j);

@@ -79,9 +79,7 @@ public class Partition {
         for (Integer state1 : cell1) {
 
             for (Integer state2 : cell2) {
-                System.out.println("Checking: " + state1 + " " + state2);
-                System.out.println("SC: " + this.setNumber(state1).toString() +
-                        " " + this.setNumber(state2));
+
                 if (this.setNumber(state1) != this.setNumber(state2))
                     return false;
             }
@@ -90,6 +88,12 @@ public class Partition {
         return true;
     }
 
+    /**
+     * Returns the set number.
+     *
+     * @param state the state
+     * @return the integer
+     */
     private Integer setNumber(Integer state) {
         for (ArrayList<Integer> set : this.sets) {
 
@@ -97,6 +101,76 @@ public class Partition {
                 return this.sets.indexOf(set);
         }
         return null;
+    }
+
+    /**
+     * Make the next partitioning.
+     *
+     * @param stmat the state transition matrix
+     * @return the next partition
+     */
+    Partition makeNextPartitioning(StateTransitionMatrix stmat) {
+
+        boolean anyDistinguishable = false;
+        Partition newPartition = new Partition();
+
+        for (ArrayList<Integer> set : this.getSets()) {
+
+            for (Integer state : set) {
+
+                if (newPartition.hasState(state))
+                    continue;
+
+                ArrayList<Integer> newSet = new ArrayList<Integer>();
+                newSet.add(state);
+
+                for (int i = set.indexOf(state) + 1; i < set.size(); i++) {
+
+                    if (this.areDistinguished(state, set.get(i), stmat)) {
+
+                        anyDistinguishable = true;
+                    }
+                    else {
+
+                        newSet.add(set.get(i));
+                    }
+                }
+                newPartition.addSet(newSet);
+            }
+        }
+
+        /** Compare the acquired partition and previous one. */
+        if (anyDistinguishable == false)
+            newPartition = this;
+
+        return newPartition;
+    }
+
+
+    /**
+     * Checks whether two states are indistinguishable or not.
+     *
+     * @param state1 the state 1
+     * @param state2 the state 2
+     * @param stmat the state transition matrix
+     * @return true, if successful
+     */
+    private boolean areDistinguished(Integer state1, Integer state2,
+            StateTransitionMatrix stmat) {
+
+        ArrayList<ArrayList<Integer>> col1 = StateTransitionMatrix.
+                retrieveColumn(stmat, state1);
+        ArrayList<ArrayList<Integer>> col2 = StateTransitionMatrix.
+                retrieveColumn(stmat, state2);
+
+        for (int index = 1; index < col1.size(); index++) {
+
+            if (!(this.haveSimilarSets(col1.get(index),
+                    col2.get(index))))
+                return true;
+        }
+
+        return false;
     }
 
 }

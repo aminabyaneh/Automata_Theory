@@ -146,7 +146,7 @@ public class IO {
 
         RegExEntry inputRegEx = new RegExEntry();
 
-        inputRegEx.setInputRegEx(sc.nextLine());
+        inputRegEx.setInput(sc.nextLine());
         inputRegEx.setTask(taskToTasks(sc.nextLine()));
 
         sc.close();

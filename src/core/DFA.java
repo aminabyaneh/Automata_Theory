@@ -6,10 +6,7 @@ import java.util.Collections;
 /**
  * The Class DFA.
  */
-public class DFA {
-
-    /** The state transition matrix for normal DFA. */
-    StateTransitionMatrix stmax;
+public class DFA extends FSM {
 
     /** The minimum DFA state transition matrix. */
     StateTransitionMatrix minSTM;
@@ -18,20 +15,14 @@ public class DFA {
     StateTransitionMatrix nfaSTM;
 
     /** The final states. */
-    private ArrayList<Integer> finalStates;
-
-    /** The final states. */
     private ArrayList<Integer> nfaFinalStates;
-
-    /** The start state. */
-    private Integer startState;
 
     /**
      * Instantiates a new DFA.
      */
     public DFA() {
 
-        this.stmax = new StateTransitionMatrix();
+        this.stmat = new StateTransitionMatrix();
         this.finalStates = new ArrayList<Integer>();
     }
 
@@ -40,24 +31,23 @@ public class DFA {
      *
      * @param the input NFA to convert to DFA
      */
-    public void buildDFA(NFA nfa) {
+    public void build(NFA nfa) {
 
-        System.out.println("\n\nBuilding DFA....");
         this.nfaSTM = nfa.stmat;
         this.nfaFinalStates = nfa.getFinalStates();
 
         /** Initialize the DFA table. */
         this.initSTM();
         this.addNewColumn();
-        System.out.println("STM initialized: " + this.stmax.toString());
 
         /** Get the first state e-closure. */
+        ArrayList<Integer> visitedStates = new ArrayList<Integer>();
         ArrayList<Integer> eClosure = this.nfaSTM.
-                getEpsilonClosure(this.nfaSTM.get(1).get(0).get(0));
+                getEpsilonClosure(this.nfaSTM.get(1).get(0).get(0),
+                        visitedStates);
 
         /** Add this as first state in DFA. */
-        this.stmax.get(1).get(0).addAll(eClosure);
-        System.out.println("STM first added: " + this.stmax.toString());
+        this.stmat.get(1).get(0).addAll(eClosure);
 
         /** See where the last state added goes, fill its column,
          * add the new states to state transition matrix as well.
@@ -65,7 +55,7 @@ public class DFA {
         int lastCheckedColumn = 0;
 
         /** Continue until there is no new state. */
-        while (lastCheckedColumn < this.stmax.size() - 1) {
+        while (lastCheckedColumn < this.stmat.size() - 1) {
 
             /** Increase the last checked number. */
             lastCheckedColumn++;
@@ -78,10 +68,8 @@ public class DFA {
         }
 
         /** Set correct final and start states. */
-        this.simplifySTM(this.stmax);
-        System.out.println("Simplified stm: " + this.stmax.toString());
-        System.out.println("Final states: " + this.getFinalStates().toString());
-        System.out.println("Start state: " + this.getStartState());
+        this.simplifySTM(this.stmat);
+        LOGGER.info("Simplified STM: " + this.stmat.toString() + "\n");
     }
 
     /**
@@ -137,33 +125,29 @@ public class DFA {
      */
     private void addNewStates(int lastCheckedColumn) {
 
-        System.out.println("\nAdding new states...");
         ArrayList<ArrayList<Integer>> column =
-                this.stmax.get(lastCheckedColumn);
+                this.stmat.get(lastCheckedColumn);
 
         ArrayList<ArrayList<Integer>> previousStates =
                 new ArrayList<ArrayList<Integer>>();
 
-        for (ArrayList<ArrayList<Integer>> col : this.stmax) {
+        for (ArrayList<ArrayList<Integer>> col : this.stmat) {
 
-            if (this.stmax.indexOf(col) != 0)
+            if (this.stmat.indexOf(col) != 0)
                 previousStates.add(col.get(0));
         }
 
         previousStates.forEach(element -> Collections.sort(element));
         column.forEach(element -> Collections.sort(element));
-        System.out.println("Previous states: " + previousStates.toString());
-        System.out.println("column states: " + column.toString());
 
         for (ArrayList<Integer> cell : column) {
 
             if ((!previousStates.contains(cell)) && (!cell.isEmpty())) {
 
                 this.addNewColumn();
-                this.stmax.get(this.stmax.size() - 1).get(0).addAll(cell);
+                this.stmat.get(this.stmat.size() - 1).get(0).addAll(cell);
             }
         }
-        System.out.println("After addition: " + this.stmax.toString());
     }
 
     /**
@@ -174,50 +158,48 @@ public class DFA {
     private void fillColumnFromNFA(int lastCheckedColumn) {
 
         ArrayList<ArrayList<Integer>> column =
-                this.stmax.get(lastCheckedColumn);
+                this.stmat.get(lastCheckedColumn);
 
         ArrayList<Integer> state = column.get(0);
         ArrayList<Integer> nextState;
         ArrayList<Integer> nfaCell = new ArrayList<Integer>();
         ArrayList<Integer> nfaCellClosure = new ArrayList<Integer>();
-        System.out.println("\nFilling column...");
-        for (ArrayList<Integer> cell : this.stmax.get(0)) {
+
+        for (ArrayList<Integer> cell : this.stmat.get(0)) {
+
             if (cell.get(0) == 0)
                 continue;
 
             nextState = new ArrayList<Integer>();
 
             for (Integer s : state) {
-                System.out.println("State: " + s.toString() + "Letter: " +
-                        cell.get(0));
 
                 nfaCell = StateTransitionMatrix.retrieveCell(this.nfaSTM,
                         s, cell.get(0));
 
-                System.out.println("NFA Cell: " + nfaCell.toString());
                 for (Integer dstState : nfaCell) {
-
-                    System.out.println("Dst State: " + dstState.toString() + " " +
-                            nextState.toString());
 
                     if (!nextState.contains(dstState)) {
 
+                        /** Add the state itself. */
                         nextState.add(dstState);
+
+                        /** Calculate epsilon closures. */
+                        ArrayList<Integer> visitedStates =
+                                new ArrayList<Integer>();
                         nfaCellClosure = this.nfaSTM.
-                                getEpsilonClosure(dstState);
-                        System.out.println("nfaCellClosure: " + nfaCellClosure.toString());
+                                getEpsilonClosure(dstState, visitedStates);
+
+                        /** Add closures to next state. */
                         for (Integer closureState : nfaCellClosure) {
-                            System.out.println("Closure State: " + closureState.toString());
+
                             if (!nextState.contains(closureState))
                                 nextState.add(closureState);
                         }
                     }
-
-                    System.out.println("Next state: " + nextState.toString());
                 }
             }
-            System.out.println("Final nextState: " + nextState.toString() + "\n");
-            column.get(this.stmax.get(0).indexOf(cell)).addAll(nextState);
+            column.get(this.stmat.get(0).indexOf(cell)).addAll(nextState);
         }
     }
 
@@ -240,7 +222,7 @@ public class DFA {
             newCell.add(cell.get(0));
             newColumn.add(cell);
         }
-        this.stmax.add(newColumn);
+        this.stmat.add(newColumn);
     }
 
     /**
@@ -263,7 +245,7 @@ public class DFA {
             newColumn.add(newCell);
         }
 
-        this.stmax.add(newColumn);
+        this.stmat.add(newColumn);
     }
 
     /**
@@ -281,7 +263,8 @@ public class DFA {
 
         /** Try to build P_k while P_k and P_k-1 are different. */
         partition = this.maximumPartitioning(partition);
-        System.out.println("Final Partition: " + partition.getSets().toString());
+        LOGGER.info("Final Partitions: " +
+                partition.getSets().toString() + "\n");
 
         /** Convert final partition to DFA. */
         this.partitionToDFA(partition);
@@ -296,7 +279,7 @@ public class DFA {
 
         ArrayList<Integer> nonFinalStates = new ArrayList<Integer>();
 
-        for (ArrayList<ArrayList<Integer>> column : this.stmax) {
+        for (ArrayList<ArrayList<Integer>> column : this.stmat) {
 
             int state = column.get(0).get(0);
             if (state == 0)
@@ -307,16 +290,6 @@ public class DFA {
         }
 
         return nonFinalStates;
-    }
-
-    /**
-     * Gets the final states.
-     *
-     * @return the final states
-     */
-    private ArrayList<Integer> getFinalStates() {
-
-        return this.finalStates;
     }
 
     /**
@@ -340,7 +313,7 @@ public class DFA {
         //            newCell.add(cell.get(0));
         //            newColumn.add(cell);
         //        }
-        //        this.stmax.add(newColumn);
+        //        this.stmat.add(newColumn);
         //
         //        /** Initialize the DFA state transition matrix. */
         //        for (ArrayList<Integer> set : partition.getSets()) {
@@ -356,7 +329,7 @@ public class DFA {
         //                newColumn.add(newCell);
         //            }
         //
-        //            this.stmax.add(newColumn);
+        //            this.stmat.add(newColumn);
         //        }
 
         /** Fill the state transition matrix based on partitions. */
@@ -401,9 +374,8 @@ public class DFA {
 
         do {
 
-            System.out.println("Entering while...");
             nextPartition =
-                    this.makeNextPartitioning(partition);
+                    partition.makeNextPartitioning(this.stmat);
 
             if ((partition.equals(nextPartition)))
                 return partition;
@@ -412,108 +384,4 @@ public class DFA {
 
         } while (true);
     }
-
-    /**
-     * Make the next partitioning.
-     *
-     * @param partition the previous partition
-     * @return the next partition
-     */
-    private Partition makeNextPartitioning(Partition partition) {
-
-        boolean anyDistinguishable = false;
-        Partition newPartition = new Partition();
-
-        for (ArrayList<Integer> set : partition.getSets()) {
-            System.out.println("*Set: " + set.toString());
-
-            for (Integer state : set) {
-
-                if (newPartition.hasState(state))
-                    continue;
-
-                ArrayList<Integer> newSet = new ArrayList<Integer>();
-                newSet.add(state);
-
-                for (int i = set.indexOf(state) + 1; i < set.size(); i++) {
-
-                    if (this.areDistinguished(partition, state, set.get(i))) {
-
-                        anyDistinguishable = true;
-                    }
-                    else {
-
-                        newSet.add(set.get(i));
-                    }
-                }
-                newPartition.addSet(newSet);
-            }
-        }
-
-        System.out.println("$New Partition: " +
-                newPartition.getSets().toString() + "->" + anyDistinguishable);
-
-        /** Compare the acquired partition and previous one. */
-        if (anyDistinguishable == false)
-            newPartition = partition;
-
-        return newPartition;
-    }
-
-    /**
-     * Checks whether two states are indistinguishable or not.
-     * @param partition
-     *
-     * @param state the state
-     * @param integer the integer
-     * @return true, if successful
-     */
-    private boolean areDistinguished(Partition partition,
-            Integer state1, Integer state2) {
-
-        ArrayList<ArrayList<Integer>> col1 = StateTransitionMatrix.
-                retrieveColumn(this.stmax, state1);
-        ArrayList<ArrayList<Integer>> col2 = StateTransitionMatrix.
-                retrieveColumn(this.stmax, state2);
-
-        System.out.println("#Col1: " + col1.toString());
-        System.out.println("#Col2: " + col2.toString());
-
-        for (int index = 1; index < col1.size(); index++) {
-
-            if (!(partition.haveSimilarSets(col1.get(index),
-                    col2.get(index))))
-                return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Sets the final states.
-     *
-     * @param finalStates the new final states
-     */
-    public void setFinalStates(ArrayList<Integer> finalStates) {
-        this.finalStates = finalStates;
-    }
-
-    /**
-     * Gets the start state.
-     *
-     * @return the start state
-     */
-    public Integer getStartState() {
-        return startState;
-    }
-
-    /**
-     * Sets the start state.
-     *
-     * @param startState the new start state
-     */
-    public void setStartState(Integer startState) {
-        this.startState = startState;
-    }
-
 }

@@ -6,14 +6,13 @@ import java.util.HashMap;
 import core.NFA;
 import core.StateTransitionMatrix;
 import utils.Chars;
-import utils.Tasks;
 
 /**
  * The Class NFAEntry.
  * This class parses the NFA input data.
  *
  */
-public class NFAEntry {
+public class NFAEntry extends Entry {
 
     /** The input alphabet. */
     HashMap <String, Integer> alphabet;
@@ -33,8 +32,6 @@ public class NFAEntry {
     /** The state transition matrix. */
     private ArrayList<String> stateTransitionMat;
 
-    /** The task. */
-    private Tasks task;
 
     /**
      * Instantiates a new NFA entry.
@@ -246,25 +243,6 @@ public class NFAEntry {
 
 
         return this.statesHM.get(state);
-    }
-
-    /**
-     * Gets the task.
-     *
-     * @return the task
-     */
-    public Tasks getTask() {
-        return task;
-    }
-
-    /**
-     * Sets the task.
-     *
-     * @param task the new task
-     */
-    public void setTask(Tasks task) {
-
-        this.task = task;
     }
 
     /**

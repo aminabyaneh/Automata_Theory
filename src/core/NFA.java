@@ -1,9 +1,11 @@
 package core;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
 import entries.NFAEntry;
+import utils.Chars;
 import utils.Phrase;
 import utils.Tasks;
 
@@ -15,30 +17,13 @@ import utils.Tasks;
  *  move common elements there.
  * TODO: remove static functions in NFA and make it look more like DFA.
  */
-public class NFA {
-
-    /** The NFA table. */
-    StateTransitionMatrix stmat;
-
-    /** The final states. */
-    private ArrayList<Integer> finalStates;
-
-    /** The start state. */
-    private Integer startState;
+public class NFA extends FSM {
 
     /** The task. */
     private Tasks task;
 
     /** The input data. */
     private NFAEntry inputData;
-
-    /** Logger is initiated. */
-    @SuppressWarnings("unused")
-    private static final Logger LOGGER =
-    Logger.getLogger(RegEx.class.getName());
-
-    /** The epsilon is represented by -1. */
-    public static int epsilon = -1;
 
     /**
      * Instantiates a new empty NFA class.
@@ -117,7 +102,7 @@ public class NFA {
 
         case DFA:
             DFA requestedDFA = this.createMinimumDFA();
-            requestedDFA.stmax.print(this.inputData.getStatesHM(),
+            requestedDFA.stmat.print(this.inputData.getStatesHM(),
                     this.finalStates);
             break;
 
@@ -133,6 +118,77 @@ public class NFA {
     }
 
     /**
+     * Builds the.
+     *
+     * @param regex the regex
+     */
+    public void build(String regex) {
+
+        /** Build the STM for desired regular expression. */
+        this.stmat = this.buildRecursive(regex);
+    }
+
+    /**
+     * Builds the NFA.
+     * Recursively builds an NFA based on modified Thompson rules.
+     *
+     * @param regex the input RegEx to translate to NFA
+     * @return the NFA
+     */
+    private StateTransitionMatrix buildRecursive(String regex) {
+
+        /** Trivial case, NFA in this state is a basic NFA. */
+        if (regex.length() == 1) {
+
+            Phrase p = new Phrase(regex);
+            NFA trivialNFA = new NFA(p);
+
+            return trivialNFA.stmat;
+        }
+
+        ArrayList<Phrase> phrases = new ArrayList<Phrase>();
+        ArrayList<StateTransitionMatrix> stmats =
+                new ArrayList<StateTransitionMatrix>();
+
+        /** Extract all the phrases and then call recursively on build. */
+        phrases = RegEx.extractPhrases(regex);
+        for (Phrase p : phrases) {
+
+            stmats.add(this.buildRecursive(p.string));
+        }
+
+        /** Checking for star in phrases and applying it to NFA. */
+
+        for (Phrase p : phrases) {
+
+            int index = phrases.indexOf(p);
+            StateTransitionMatrix.addEpsilon(stmats.get(index));
+
+            if (p.hasStar)
+                StateTransitionMatrix.star(stmats.get(index));
+        }
+
+        /** Start processing the operations. */
+        Phrase p = phrases.get(0);
+
+        if (p.nextOperation == Chars.concatenation) {
+
+            return StateTransitionMatrix.concat(stmats);
+        }
+        else if (p.nextOperation == Chars.union) {
+
+            return StateTransitionMatrix.union(stmats);
+        }
+        else if (p.nextOperation == Chars.none) {
+
+            /** Only one phrase exists in this case so return the NFA. */
+            return stmats.get(0);
+        }
+
+        return null;
+    }
+
+    /**
      * Creates the minimum DFA.
      */
     public DFA createMinimumDFA() {
@@ -140,116 +196,13 @@ public class NFA {
         DFA dfa = new DFA();
 
         /** DFA builds a minimum DFA. */
-        dfa.buildDFA(this);
+        dfa.build(this);
 
         /** DFA builds a minimum DFA. */
         dfa.makeMin();
 
         /** The answer is minDFA. */
         return dfa;
-    }
-
-    /**
-     * Calculate the union NFA.
-     *
-     * @param nfas the array of NFAs
-     * @return the final union NFA
-     */
-    public static NFA unionNFA(ArrayList<NFA> nfas) {
-
-        NFA nfaLargest = NFA.getLargestNFA(nfas);
-        NFA nfaMerged = nfaLargest;
-
-        for (NFA nfa : nfas) {
-
-            /** Skip the first one. */
-            if (nfas.indexOf(nfa) == nfas.indexOf(nfaLargest))
-                continue;
-
-            /** Rename the second one states as in continue of the first one. */
-            StateTransitionMatrix.renameStates(nfaMerged, nfa);
-
-            /** Add new alphabet letters to the second table. */
-            StateTransitionMatrix.expandAlphabets(nfaMerged, nfa);
-
-            /** Calculates the union of two NFAs. */
-            StateTransitionMatrix.buildUnionNFA(nfaMerged, nfa);
-        }
-
-        return nfaMerged;
-    }
-
-    /**
-     * Calculates the concatenation of an array of NFAs.
-     *
-     * @param nfas the input ArrayList of NFAs
-     * @return the final NFA
-     */
-    public static NFA concatNFA(ArrayList<NFA> nfas) {
-
-        NFA nfaLargest = NFA.getLargestNFA(nfas);
-        NFA nfaMerged = nfaLargest;
-
-        for (NFA nfa : nfas) {
-
-            /** Skip the first one. */
-            if (nfas.indexOf(nfa) == nfas.indexOf(nfaLargest))
-                continue;
-
-            /** Rename the second one states as in continue of the first one. */
-            StateTransitionMatrix.renameStates(nfaMerged, nfa);
-
-            /** Add new alphabet letters to the second table. */
-            StateTransitionMatrix.expandAlphabets(nfaMerged, nfa);
-
-            /** Calculates the concatenation of two NFAs. */
-            StateTransitionMatrix.buildConcatNFA(nfaMerged, nfa);
-        }
-
-        return nfaMerged;
-    }
-
-    /**
-     * Calculates the star of a given NFA.
-     *
-     * @param nfaA the stared NFA
-     */
-    public static void starNFA(NFA nfaA) {
-
-        StateTransitionMatrix.buildStarNFA(nfaA);
-    }
-
-    /**
-     * Gets the largest NFA out of an ArrayList.
-     *
-     * @param nfas the array of NFAs in each stage of operation.
-     * @return the largest NFA.
-     */
-    private static NFA getLargestNFA(ArrayList<NFA> nfas) {
-
-        NFA largest = null;
-        Integer maxSeen = 0;
-
-        for (NFA element : nfas) {
-
-            if (element.stmat.size() > maxSeen) {
-
-                maxSeen = element.stmat.size();
-                largest = element;
-            }
-        }
-
-        return largest;
-    }
-
-    /**
-     * Gets the final states.
-     *
-     * @return the final states
-     */
-    public ArrayList<Integer> getFinalStates() {
-
-        return finalStates;
     }
 
     /**
@@ -275,31 +228,22 @@ public class NFA {
     }
 
     /**
-     * Sets the final states.
+     * Reverse hash map.
      *
-     * @param finalStates the new final states
+     * @param hash the hash map needed to be reversed.
+     * @return the reversed hash map
      */
-    public void setFinalStates(ArrayList<Integer> finalStates) {
+    public static HashMap<Integer, String> reverseHash(
+            HashMap<String, Integer> hash) {
 
-        this.finalStates = finalStates;
-    }
+        HashMap<Integer, String> reversedHash =
+                new HashMap<Integer, String>();
 
-    /**
-     * Gets the start state.
-     *
-     * @return the start state
-     */
-    public Integer getStartState() {
-        return startState;
-    }
+        for (Map.Entry<String, Integer> entry : hash.entrySet()) {
 
-    /**
-     * Sets the start state.
-     *
-     * @param startState the new start state
-     */
-    public void setStartState(Integer startState) {
+            reversedHash.put(entry.getValue(), entry.getKey());
+        }
 
-        this.startState = startState;
+        return reversedHash;
     }
 }

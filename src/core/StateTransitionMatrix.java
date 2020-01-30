@@ -3,14 +3,14 @@ package core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 import utils.Chars;
 
 /**
- * The Class StateTransitionMatrix.
- * TODO: localize some of the methods.
- * TODO: restrict passage of NFAs
+ * The Class for a state transition matrix.
+ * This class handles are the low level tasks regarding
+ * to state transition table.
+ *
  */
 public class StateTransitionMatrix extends
 ArrayList<ArrayList<ArrayList<Integer>>> {
@@ -33,7 +33,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     public void print(HashMap<String, Integer> states,
             ArrayList<Integer> finalStates) {
 
-        HashMap<Integer, String> statesPrint = this.reverseHash(states);
+        HashMap<Integer, String> statesPrint = NFA.reverseHash(states);
 
         /** Print start state. */
         System.out.println(statesPrint.get(this.get(1).get(0).get(0)));
@@ -49,7 +49,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         /** Print alphabet. */
         for (ArrayList<Integer> cell : this.get(0)) {
 
-            if (cell.get(0) == 0 || cell.get(0) == NFA.epsilon)
+            if (cell.get(0) == 0 || cell.get(0) == FSM.epsilon)
                 continue;
 
             System.out.print((char) cell.get(0).intValue());
@@ -106,26 +106,6 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Reverse hash map.
-     *
-     * @param hash the hash map needed to be reversed.
-     * @return the reversed hash map
-     */
-    private HashMap<Integer, String> reverseHash(
-            HashMap<String, Integer> hash) {
-
-        HashMap<Integer, String> reversedHash =
-                new HashMap<Integer, String>();
-
-        for (Map.Entry<String, Integer> entry : hash.entrySet()) {
-
-            reversedHash.put(entry.getValue(), entry.getKey());
-        }
-
-        return reversedHash;
-    }
-
-    /**
      * Prints the ST matrix as required.
      */
     public void print() {
@@ -140,7 +120,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         /** Print alphabet. */
         for (ArrayList<Integer> cell : this.get(0)) {
 
-            if (cell.get(0) == 0 || cell.get(0) == NFA.epsilon)
+            if (cell.get(0) == 0 || cell.get(0) == FSM.epsilon)
                 continue;
 
             System.out.print((char) cell.get(0).intValue());
@@ -208,30 +188,30 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Adds the epsilon to an existing NFA table.
+     * Adds the epsilon to an existing StateTransitionMatrix table.
      * Epsilon is always added to the last line of the table.
      *
-     * @param nfaA the input NFA which lacks epsilon.
+     * @param stmatA the input StateTransitionMatrix which lacks epsilon.
      */
-    public static void addEpsilon(NFA nfaA) {
+    public static void addEpsilon(StateTransitionMatrix stmatA) {
 
-        if (!(StateTransitionMatrix.hasLetter(nfaA, NFA.epsilon))) {
+        if (!(StateTransitionMatrix.hasLetter(stmatA, FSM.epsilon))) {
 
-            StateTransitionMatrix.addLetter(nfaA, NFA.epsilon);
+            StateTransitionMatrix.addLetter(stmatA, FSM.epsilon);
         }
     }
 
     /**
-     * Checks for an specific letter inside an NFA table.
+     * Checks for an specific letter inside an StateTransitionMatrix table.
      *
-     * @param nfa the input NFA
+     * @param stmat the input StateTransitionMatrix
      * @param letter the letter which is searched for
      * @return true, if successful
      */
-    private static boolean hasLetter(NFA nfa, int letter) {
+    private static boolean hasLetter(StateTransitionMatrix stmat, int letter) {
 
         ArrayList<ArrayList<Integer>> column;
-        column = nfa.stmat.get(0);
+        column = stmat.get(0);
 
         for (ArrayList<Integer> cell : column) {
 
@@ -242,31 +222,31 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Rename states of two input NFAs.
+     * Rename states of two input StateTransitionMatrix.
      * This solves the problem of same states at the time of concatenation.
      *
-     * @param nfaA the input NFA A
-     * @param nfaB the input NFA B
+     * @param stmatA the input StateTransitionMatrix A
+     * @param stmatB the input StateTransitionMatrix B
      */
-    static void renameStates(NFA nfaA, NFA nfaB) {
+    static void renameStates(StateTransitionMatrix stmatA, StateTransitionMatrix stmatB) {
 
         int maxStateNumber = 0;
-        for (ArrayList<ArrayList<Integer>> column : nfaA.stmat) {
+        for (ArrayList<ArrayList<Integer>> column : stmatA) {
 
             if (column.get(0).get(0) >= maxStateNumber)
                 maxStateNumber = column.get(0).get(0);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : nfaB.stmat) {
+        for (ArrayList<ArrayList<Integer>> column : stmatB) {
 
-            if (nfaB.stmat.indexOf(column) == 0)
+            if (stmatB.indexOf(column) == 0)
                 continue;
 
             Integer oldState = column.get(0).get(0);
             Integer newState = maxStateNumber + oldState;
 
             /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : nfaB.stmat)
+            for (ArrayList<ArrayList<Integer>> c : stmatB)
                 for (ArrayList<Integer> cell : c)
                     if (cell.contains(oldState))
                         cell.set(cell.indexOf(oldState), newState);
@@ -274,35 +254,35 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Expands nfaA alphabet to add letters in nfaB.
+     * Expands stmatA alphabet to add letters in stmatB.
      *
-     * @param nfaA the input NFA A
-     * @param nfaB the input NFA B
+     * @param stmatA the input StateTransitionMatrix A
+     * @param stmatB the input StateTransitionMatrix B
      */
-    static void expandAlphabets(NFA nfaA, NFA nfaB) {
+    static void expandAlphabets(StateTransitionMatrix stmatA, StateTransitionMatrix stmatB) {
 
-        ArrayList<Integer> alphabetA = StateTransitionMatrix.extractAlphabet(nfaA);
-        ArrayList<Integer> alphabetB = StateTransitionMatrix.extractAlphabet(nfaB);
+        ArrayList<Integer> alphabetA = StateTransitionMatrix.extractAlphabet(stmatA);
+        ArrayList<Integer> alphabetB = StateTransitionMatrix.extractAlphabet(stmatB);
 
         for (Integer letter : alphabetB) {
 
             if (alphabetA.contains(letter))
                 continue;
 
-            StateTransitionMatrix.addLetter(nfaA, letter);
+            StateTransitionMatrix.addLetter(stmatA, letter);
         }
     }
 
     /**
-     * Extract alphabet of a given NFA.
+     * Extract alphabet of a given StateTransitionMatrix.
      *
-     * @param nfa the input NFA
+     * @param stmat the input StateTransitionMatrix
      * @return the array list of all letters (alphabet)
      */
-    private static ArrayList<Integer> extractAlphabet(NFA nfa) {
+    private static ArrayList<Integer> extractAlphabet(StateTransitionMatrix stmat) {
 
         ArrayList<Integer> alphabet = new ArrayList<Integer>();
-        for (ArrayList<Integer> cell : nfa.stmat.get(0)) {
+        for (ArrayList<Integer> cell : stmat.get(0)) {
 
             if (cell.get(0) == 0)
                 continue;
@@ -312,22 +292,22 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Adds a new letter to an existing NFA table.
+     * Adds a new letter to an existing StateTransitionMatrix table.
      *
-     * @param nfaA the input NFA of A.
+     * @param stmatA the input StateTransitionMatrix of A.
      * @param letter the new letter to add.
      */
-    private static void addLetter(NFA nfaA, int letter) {
+    private static void addLetter(StateTransitionMatrix stmatA, int letter) {
 
         ArrayList<Integer> cell;
-        for (ArrayList<ArrayList<Integer>> c : nfaA.stmat) {
+        for (ArrayList<ArrayList<Integer>> c : stmatA) {
 
-            if (nfaA.stmat.indexOf(c) == 0) {
+            if (stmatA.indexOf(c) == 0) {
 
                 cell = new ArrayList<Integer>();
                 cell.add(letter);
 
-                if (letter == NFA.epsilon)
+                if (letter == FSM.epsilon)
                     c.add(cell);
                 else
                     c.add(c.size() - 1, cell);
@@ -336,7 +316,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
 
                 cell = new ArrayList<Integer>();
 
-                if (letter == NFA.epsilon)
+                if (letter == FSM.epsilon)
                     c.add(cell);
                 else
                     c.add(c.size() - 1, cell);
@@ -345,15 +325,15 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Builds the concatenation of two nfaA and nfaB.
-     * Assumes that #states in nfaA is not less than in nfaB.
+     * Builds the concatenation of two stmatA and stmatB.
+     * Assumes that #states in stmatA is not less than in stmatB.
      *
-     * @param nfaA the input NFA A
-     * @param nfaB the input NFA B
+     * @param stmatA the input StateTransitionMatrix A
+     * @param stmatB the input StateTransitionMatrix B
      */
-    static void buildConcatNFA(NFA nfaA, NFA nfaB) {
+    static void buildConcat(StateTransitionMatrix stmatA, StateTransitionMatrix stmatB) {
 
-        for (ArrayList<ArrayList<Integer>> columnB : nfaB.stmat) {
+        for (ArrayList<ArrayList<Integer>> columnB : stmatB) {
 
             /** Skip alphabet column. */
             if (columnB.get(0).get(0) == 0)
@@ -364,11 +344,11 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
 
             /** Case that it is the first state it should
              *  be entered an edge e via previous end. */
-            if (nfaB.stmat.indexOf(columnB) == 1) {
+            if (stmatB.indexOf(columnB) == 1) {
 
                 /** Last column must enter the state column via epsilon. */
                 ArrayList<ArrayList<Integer>> lastColumn =
-                        nfaA.stmat.get(nfaA.stmat.size() - 1);
+                        stmatA.get(stmatA.size() - 1);
 
                 ArrayList<Integer> epsilonCell =
                         lastColumn.get(lastColumn.size() - 1);
@@ -376,8 +356,8 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
             }
 
             /** Add state as a new column. */
-            ArrayList<Integer> alphabetA = extractAlphabet(nfaA);
-            ArrayList<Integer> alphabetB = extractAlphabet(nfaB);
+            ArrayList<Integer> alphabetA = extractAlphabet(stmatA);
+            ArrayList<Integer> alphabetB = extractAlphabet(stmatB);
 
             ArrayList<Integer> changeCell;
 
@@ -391,7 +371,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 if (alphabetB.contains(letter)) {
 
                     changeCell = StateTransitionMatrix.
-                            retrieveCell(nfaB.stmat,
+                            retrieveCell(stmatB,
                                     columnB.get(0).get(0), letter);
 
                     newColumn.add(changeCell);
@@ -403,36 +383,36 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 }
             }
 
-            nfaA.stmat.add(newColumn);
+            stmatA.add(newColumn);
         }
     }
 
     /**
-     * Builds the union NFA.
+     * Builds the union StateTransitionMatrix.
      *
-     * @param nfaA the input NFA A
-     * @param nfaB the input NFA B
+     * @param stmatA the input StateTransitionMatrix A
+     * @param stmatB the input StateTransitionMatrix B
      */
-    static void buildUnionNFA(NFA nfaA, NFA nfaB) {
+    static void buildUnion(StateTransitionMatrix stmatA, StateTransitionMatrix stmatB) {
 
         ArrayList<Integer> startStates = new ArrayList<Integer>();
         ArrayList<Integer> endStates = new ArrayList<Integer>();
 
-        startStates.add(nfaA.stmat.get(1).get(0).get(0) + 1);
-        startStates.add(nfaB.stmat.get(1).get(0).get(0) + 1);
+        startStates.add(stmatA.get(1).get(0).get(0) + 1);
+        startStates.add(stmatB.get(1).get(0).get(0) + 1);
 
-        endStates.add(nfaA.stmat.get(nfaA.stmat.size() - 1)
+        endStates.add(stmatA.get(stmatA.size() - 1)
                 .get(0).get(0) + 1);
-        endStates.add(nfaB.stmat.get(nfaB.stmat.size() - 1)
+        endStates.add(stmatB.get(stmatB.size() - 1)
                 .get(0).get(0) + 1);
 
         ArrayList<Integer> changeCell = null;
 
         /** Add state as a new column. */
-        ArrayList<Integer> alphabetA = extractAlphabet(nfaA);
-        ArrayList<Integer> alphabetB = extractAlphabet(nfaB);
+        ArrayList<Integer> alphabetA = extractAlphabet(stmatA);
+        ArrayList<Integer> alphabetB = extractAlphabet(stmatB);
 
-        for (ArrayList<ArrayList<Integer>> columnB : nfaB.stmat) {
+        for (ArrayList<ArrayList<Integer>> columnB : stmatB) {
 
             /** Skip alphabet column. */
             if (columnB.get(0).get(0) == 0)
@@ -451,7 +431,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 if (alphabetB.contains(letter)) {
 
                     changeCell = StateTransitionMatrix.
-                            retrieveCell(nfaB.stmat,
+                            retrieveCell(stmatB,
                                     columnB.get(0).get(0), letter);
 
                     newColumn.add(changeCell);
@@ -463,17 +443,17 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 }
             }
 
-            nfaA.stmat.add(newColumn);
+            stmatA.add(newColumn);
         }
 
         /** Increment state numbers to add the new states. */
-        StateTransitionMatrix.incrementStateNumbers(nfaA);
+        StateTransitionMatrix.incrementStateNumbers(stmatA);
 
         /** Add two new states for the start and for the end. */
         ArrayList<ArrayList<Integer>> startColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> firstColumn =
-                nfaA.stmat.get(1);
+                stmatA.get(1);
 
         Integer index = -1;
         for (ArrayList<Integer> c : firstColumn) {
@@ -492,7 +472,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         ArrayList<ArrayList<Integer>> endColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> lastColumn =
-                nfaA.stmat.get(nfaA.stmat.size() - 1);
+                stmatA.get(stmatA.size() - 1);
 
         index = -1;
         for (ArrayList<Integer> c : lastColumn) {
@@ -505,47 +485,47 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
             endColumn.add(changeCell);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : nfaA.stmat) {
+        for (ArrayList<ArrayList<Integer>> column : stmatA) {
 
             if (endStates.contains(column.get(0).get(0)))
                 column.get(column.size() - 1).add(endColumn.get(0).get(0));
         }
 
-        /** Add start and end column to main NFA. */
-        nfaA.stmat.add(1, startColumn);
-        nfaA.stmat.add(nfaA.stmat.size(), endColumn);
+        /** Add start and end column to main StateTransitionMatrix. */
+        stmatA.add(1, startColumn);
+        stmatA.add(stmatA.size(), endColumn);
     }
 
     /**
-     * Builds the star NFA.
+     * Builds the star StateTransitionMatrix.
      *
-     * @param nfaA the NFA A
+     * @param stmatA the StateTransitionMatrix A
      */
-    static void buildStarNFA(NFA nfaA) {
+    static void buildStar(StateTransitionMatrix stmatA) {
 
         ArrayList<Integer> changeCell = null;
 
         /** Add the feed back epsilon arrow. */
         ArrayList<ArrayList<Integer>> columnEnd;
-        columnEnd = nfaA.stmat.get(nfaA.stmat.size() - 1);
+        columnEnd = stmatA.get(stmatA.size() - 1);
 
         ArrayList<Integer> cell = columnEnd.get(columnEnd.size() - 1);
         if (!cell.contains(1))
             cell.add(1);
 
         /** Increment state numbers to add the new states. */
-        StateTransitionMatrix.incrementStateNumbers(nfaA);
+        StateTransitionMatrix.incrementStateNumbers(stmatA);
 
         /** Add two new states for the start and for the end. */
         ArrayList<ArrayList<Integer>> startColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> firstColumn =
-                nfaA.stmat.get(1);
+                stmatA.get(1);
 
         ArrayList<ArrayList<Integer>> endColumn =
                 new ArrayList<ArrayList<Integer>>();
         ArrayList<ArrayList<Integer>> lastColumn =
-                nfaA.stmat.get(nfaA.stmat.size() - 1);
+                stmatA.get(stmatA.size() - 1);
 
         Integer index = -1;
         for (ArrayList<Integer> c : firstColumn) {
@@ -580,20 +560,20 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         /** Add epsilon arrow from last column to end column. */
         lastColumn.get(lastColumn.size() - 1).add(endColumn.get(0).get(0));
 
-        /** Add start and end column to main NFA. */
-        nfaA.stmat.add(1, startColumn);
-        nfaA.stmat.add(nfaA.stmat.size(), endColumn);
+        /** Add start and end column to main StateTransitionMatrix. */
+        stmatA.add(1, startColumn);
+        stmatA.add(stmatA.size(), endColumn);
     }
 
     /**
      * Increment state numbers.
      *
-     * @param nfa the input NFA
+     * @param stmat the input StateTransitionMatrix
      */
-    private static void incrementStateNumbers(NFA nfa) {
+    private static void incrementStateNumbers(StateTransitionMatrix stmat) {
 
-        Collections.reverse(nfa.stmat);
-        for (ArrayList<ArrayList<Integer>> column : nfa.stmat) {
+        Collections.reverse(stmat);
+        for (ArrayList<ArrayList<Integer>> column : stmat) {
 
             Integer oldState = column.get(0).get(0);
             Integer newState = 1 + oldState;
@@ -602,22 +582,22 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 continue;
 
             /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : nfa.stmat)
+            for (ArrayList<ArrayList<Integer>> c : stmat)
                 for (ArrayList<Integer> cell : c)
                     if (cell.contains(oldState))
                         cell.set(cell.indexOf(oldState), newState);
         }
-        Collections.reverse(nfa.stmat);
+        Collections.reverse(stmat);
     }
 
     /**
-     * Retrieve an specific cell in NFA table
+     * Retrieve an specific cell in StateTransitionMatrix table
      * corresponding to letter and state.
      *
      * @param table of state transition matrix.
      * @param state the input state
      * @param letter the alphabet letter
-     * @return the cell found in the NFA table
+     * @return the cell found in the StateTransitionMatrix table
      */
     static ArrayList<Integer> retrieveCell(StateTransitionMatrix table,
             int state, int letter) {
@@ -638,12 +618,12 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     }
 
     /**
-     * Retrieve an specific column in NFA table
+     * Retrieve an specific column in StateTransitionMatrix table
      * corresponding to a state.
      *
      * @param table of state transition matrix.
      * @param state the input state
-     * @return the column found in the NFA table
+     * @return the column found in the StateTransitionMatrix table
      */
     static ArrayList<ArrayList<Integer>> retrieveColumn(
             StateTransitionMatrix table, int state) {
@@ -663,27 +643,28 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
      * @param state the state
      * @return the epsilon closure
      */
-    public ArrayList<Integer> getEpsilonClosure(Integer state) {
+    public ArrayList<Integer> getEpsilonClosure(Integer state,
+            ArrayList<Integer> visitedStates) {
 
         ArrayList<Integer> eClosure = new ArrayList<Integer>();
-
 
         ArrayList<ArrayList<Integer>> retrievedColumn =
                 StateTransitionMatrix.retrieveColumn(this, state);
 
-        if (retrievedColumn.get(retrievedColumn.size() - 1).isEmpty()) {
+        if (retrievedColumn.get(retrievedColumn.size() - 1).isEmpty() ||
+                visitedStates.contains(state)) {
 
             /** Add the state itself. */
             eClosure.add(state);
             return eClosure;
         }
 
+        /** Prevent a loop. */
+        visitedStates.add(state);
 
         /** Add where the state can go using epsilon. */
-        for (Integer s : retrievedColumn.get(retrievedColumn.size() - 1)) {
-
-            eClosure.addAll(this.getEpsilonClosure(s));
-        }
+        for (Integer s : retrievedColumn.get(retrievedColumn.size() - 1))
+            eClosure.addAll(this.getEpsilonClosure(s, visitedStates));
 
         eClosure.add(state);
 
@@ -691,5 +672,100 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         Collections.sort(eClosure);
 
         return eClosure;
+    }
+    /**
+     * Calculate the union StateTransitionMatrix.
+     *
+     * @param stmats the array of StateTransitionMatrix
+     * @return the final union StateTransitionMatrix
+     */
+    public static StateTransitionMatrix
+    union(ArrayList<StateTransitionMatrix> stmats) {
+
+        StateTransitionMatrix stmatLargest = StateTransitionMatrix.getLargest(stmats);
+        StateTransitionMatrix stmatMerged = stmatLargest;
+
+        for (StateTransitionMatrix stmat : stmats) {
+
+            /** Skip the first one. */
+            if (stmats.indexOf(stmat) == stmats.indexOf(stmatLargest))
+                continue;
+
+            /** Rename the second one states as in continue of the first one. */
+            StateTransitionMatrix.renameStates(stmatMerged, stmat);
+
+            /** Add new alphabet letters to the second STM. */
+            StateTransitionMatrix.expandAlphabets(stmatMerged, stmat);
+
+            /** Calculates the union of two StateTransitionMatrix. */
+            StateTransitionMatrix.buildUnion(stmatMerged, stmat);
+        }
+
+        return stmatMerged;
+    }
+
+    /**
+     * Calculates the concatenation of an array of StateTransitionMatrix.
+     *
+     * @param stmats the input ArrayList of StateTransitionMatrix
+     * @return the final StateTransitionMatrix
+     */
+    public static StateTransitionMatrix
+    concat(ArrayList<StateTransitionMatrix> stmats) {
+
+        StateTransitionMatrix stmatLargest = StateTransitionMatrix.getLargest(stmats);
+        StateTransitionMatrix stmatMerged = stmatLargest;
+
+        for (StateTransitionMatrix stmat : stmats) {
+
+            /** Skip the first one. */
+            if (stmats.indexOf(stmat) == stmats.indexOf(stmatLargest))
+                continue;
+
+            /** Rename the second one states as in continue of the first one. */
+            StateTransitionMatrix.renameStates(stmatMerged, stmat);
+
+            /** Add new alphabet letters to the second table. */
+            StateTransitionMatrix.expandAlphabets(stmatMerged, stmat);
+
+            /** Calculates the concatenation of two StateTransitionMatrix. */
+            StateTransitionMatrix.buildConcat(stmatMerged, stmat);
+        }
+
+        return stmatMerged;
+    }
+
+    /**
+     * Calculates the star of a given StateTransitionMatrix.
+     *
+     * @param stmatA the stared StateTransitionMatrix
+     */
+    public static void star(StateTransitionMatrix stmat) {
+
+        StateTransitionMatrix.buildStar(stmat);
+    }
+
+    /**
+     * Gets the largest StateTransitionMatrix out of an ArrayList.
+     *
+     * @param stmats the array of StateTransitionMatrix in each stage of operation.
+     * @return the largest StateTransitionMatrix.
+     */
+    private static StateTransitionMatrix
+    getLargest(ArrayList<StateTransitionMatrix> stmats) {
+
+        StateTransitionMatrix largest = null;
+        Integer maxSeen = 0;
+
+        for (StateTransitionMatrix element : stmats) {
+
+            if (element.size() > maxSeen) {
+
+                maxSeen = element.size();
+                largest = element;
+            }
+        }
+
+        return largest;
     }
 }

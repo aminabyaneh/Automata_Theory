@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * The Class CFGEntry.
  */
-public class CFGEntry {
+public class CFGEntry extends Entry {
 
     /** The start symbol. */
     private String startSymbol;
