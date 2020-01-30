@@ -11,6 +11,9 @@ import utils.Tasks;
  * The Class NFA.
  *
  * TODO: make stmat private and pass only tables in functions.
+ * TODO: create s super class state machine for NFA and DFA and
+ *  move common elements there.
+ * TODO: remove static functions in NFA and make it look more like DFA.
  */
 public class NFA {
 
@@ -296,6 +299,7 @@ public class NFA {
      * @param startState the new start state
      */
     public void setStartState(Integer startState) {
+
         this.startState = startState;
     }
 }

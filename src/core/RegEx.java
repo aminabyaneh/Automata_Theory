@@ -15,6 +15,7 @@ import utils.Tasks;
  *
  * TODO: handle output method.
  * TODO: test RegEx to minimum DFA using the web!
+ * TODO: bug in a**.
  */
 public class RegEx {
 
@@ -75,9 +76,17 @@ public class RegEx {
         this.regex = this.addConcatenation();
         this.regex = this.addParenthesis();
 
+        /** Build NFA from RegEx recursively. */
         NFA requestedNFA = this.buildNFA(this.regex);
-        System.out.println("Final NFA: " + requestedNFA.stmat.toString());
 
+        /** Set start and final state as they are first and last state. */
+        ArrayList<Integer> finalStates = new ArrayList<Integer>();
+        finalStates.add(requestedNFA.stmat.size() - 1);
+
+        requestedNFA.setStartState(1);
+        requestedNFA.setFinalStates(finalStates );
+
+        System.out.println("Final NFA: " + requestedNFA.stmat.toString());
         return requestedNFA;
     }
 
@@ -162,6 +171,8 @@ public class RegEx {
      * @return the NFA
      */
     private NFA buildNFA(String regex) {
+
+        System.out.println("\n\nBuilding NFA....");
 
         /** Trivial case, NFA in this state is a basic NFA. */
         if (regex.length() == 1) {

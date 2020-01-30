@@ -10,7 +10,7 @@ NFA
 
 ####### Test 3 ######
 RegEx
-(a|b)(a)*
+(a|b)(ab)*
 NFA
 
 ####### Test 4 ######

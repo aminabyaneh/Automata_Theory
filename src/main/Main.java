@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 import core.NFA;
 import core.RegEx;
 import entries.NFAEntry;
@@ -9,7 +11,6 @@ import utils.IO;
 public class Main {
 
     public static void main(String []argc) {
-
 
         automata();
         //        test();
@@ -38,6 +39,20 @@ public class Main {
     private static void test() {
 
         System.out.println("Test sequence initiated...");
+        ArrayList<ArrayList<Integer>> s = new ArrayList<ArrayList<Integer>>();
+
+        ArrayList<Integer> a = new ArrayList<Integer>();
+        ArrayList<Integer> b = new ArrayList<Integer>();
+        Integer aa = 1;
+        a.add(aa);
+        a.add(2);
+
+        s.add(a);
+        b.add(1);
+        b.add(2);
+
+
+        System.out.println(s.contains(b));
     }
 
 }

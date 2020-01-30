@@ -655,4 +655,41 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
 
         return null;
     }
+
+    /**
+     * Gets the epsilon closure of a state.
+     * This function recursively extracts all epsilon closures.
+     *
+     * @param state the state
+     * @return the epsilon closure
+     */
+    public ArrayList<Integer> getEpsilonClosure(Integer state) {
+
+        ArrayList<Integer> eClosure = new ArrayList<Integer>();
+
+
+        ArrayList<ArrayList<Integer>> retrievedColumn =
+                StateTransitionMatrix.retrieveColumn(this, state);
+
+        if (retrievedColumn.get(retrievedColumn.size() - 1).isEmpty()) {
+
+            /** Add the state itself. */
+            eClosure.add(state);
+            return eClosure;
+        }
+
+
+        /** Add where the state can go using epsilon. */
+        for (Integer s : retrievedColumn.get(retrievedColumn.size() - 1)) {
+
+            eClosure.addAll(this.getEpsilonClosure(s));
+        }
+
+        eClosure.add(state);
+
+        /** Sort just  for more ordered states. */
+        Collections.sort(eClosure);
+
+        return eClosure;
+    }
 }
