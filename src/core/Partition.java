@@ -76,6 +76,9 @@ public class Partition {
     public boolean haveSimilarSets(ArrayList<Integer> cell1,
             ArrayList<Integer> cell2) {
 
+        if (cell1.size() != cell2.size())
+            return false;
+
         for (Integer state1 : cell1) {
 
             for (Integer state2 : cell2) {
@@ -162,6 +165,9 @@ public class Partition {
                 retrieveColumn(stmat, state1);
         ArrayList<ArrayList<Integer>> col2 = StateTransitionMatrix.
                 retrieveColumn(stmat, state2);
+
+        System.out.println("col1: " + col1.toString());
+        System.out.println("col2: " + col2.toString());
 
         for (int index = 1; index < col1.size(); index++) {
 

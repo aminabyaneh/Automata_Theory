@@ -1,6 +1,7 @@
 package entries;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * The Class CFGEntry.
@@ -17,7 +18,15 @@ public class CFGEntry extends Entry {
     private String[] terminals;
 
     /** The state transition matrix. */
-    private ArrayList<String> rules;
+    private HashMap<String, ArrayList<String>> rules;
+
+    /**
+     * Instantiates a new NFA entry.
+     */
+    public CFGEntry() {
+
+        this.rules = new HashMap<String, ArrayList<String>>();
+    }
 
     /**
      * Gets the start symbol.
@@ -49,10 +58,10 @@ public class CFGEntry extends Entry {
     /**
      * Sets the variables.
      *
-     * @param variables the new variables
+     * @param strings the new variables
      */
-    public void setVariables(String[] variables) {
-        this.variables = variables;
+    public void setVariables(String[] strings) {
+        this.variables = strings;
     }
 
     /**
@@ -67,10 +76,10 @@ public class CFGEntry extends Entry {
     /**
      * Sets the terminals.
      *
-     * @param terminals the new terminals
+     * @param strings the new terminals
      */
-    public void setTerminals(String[] terminals) {
-        this.terminals = terminals;
+    public void setTerminals(String[] strings) {
+        this.terminals = strings;
     }
 
     /**
@@ -78,7 +87,7 @@ public class CFGEntry extends Entry {
      *
      * @return the rules
      */
-    public ArrayList<String> getRules() {
+    public HashMap<String, ArrayList<String>> getRules() {
         return rules;
     }
 
@@ -87,7 +96,7 @@ public class CFGEntry extends Entry {
      *
      * @param rules the new rules
      */
-    public void setRules(ArrayList<String> rules) {
+    public void setRules(HashMap<String, ArrayList<String>> rules) {
         this.rules = rules;
     }
 }

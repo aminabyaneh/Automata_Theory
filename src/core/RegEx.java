@@ -60,7 +60,8 @@ public class RegEx {
         case DFA:
             NFA nfa = this.createNFA();
             DFA minDFA = nfa.createMinimumDFA();
-            minDFA.stmat.print();
+            minDFA.minSTM.print(minDFA.getStartState(),
+                    minDFA.getFinalStates());
 
         case PDA:
         default:

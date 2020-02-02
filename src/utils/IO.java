@@ -1,6 +1,8 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import entries.CFGEntry;
@@ -12,7 +14,7 @@ import entries.RegExEntry;
  */
 public class IO {
 
-    /** The sc container for scanner object. */
+    /** The SC container for scanner object. */
     private Scanner sc;
 
     /** The data type to detect function from main. */
@@ -91,9 +93,38 @@ public class IO {
      * @return the CFG entry
      */
     private CFGEntry readCFG() {
-        return null;
 
-        //TODO
+        CFGEntry inputCFG = new CFGEntry();
+
+        /** Read the start state. */
+        String str = sc.nextLine();
+        inputCFG.setStartSymbol(str);
+
+        /** Read all the Variables. */
+        str = sc.nextLine();
+        inputCFG.setVariables(str.split("\\s+"));
+
+        /** Read the terminals. */
+        str = sc.nextLine();
+        inputCFG.setTerminals(str.split("\\s+"));
+
+        /** Read production rules. */
+        str = sc.nextLine();
+        HashMap<String, ArrayList<String>> rules =
+                new HashMap<String, ArrayList<String>>();
+
+        while (this.taskToTasks(str) == Tasks.Unknown) {
+
+            rules.put(str.split(":")[0],
+                    (ArrayList<String>) Arrays.
+                    asList(str.split(":")[1].split("|")));
+            str = sc.nextLine();
+        }
+
+        inputCFG.setRules(rules);;
+        inputCFG.setTask(this.taskToTasks(str));
+
+        return inputCFG;
     }
 
     /**

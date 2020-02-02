@@ -35,10 +35,12 @@ public class Main {
         case NFA:
             NFA nfa = new NFA((NFAEntry)ioHandler.getData());
             nfa.taskHandler();
+            break;
 
         case CFG:
             CFG cfg = new CFG((CFGEntry)ioHandler.getData());
             cfg.taskHandler();
+            break;
 
         default:
             break;

@@ -2,7 +2,6 @@ package core;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
 import utils.Chars;
 
@@ -29,22 +28,16 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
 
     /**
      * Prints the ST matrix as required.
+     *
      */
-    public void print(HashMap<String, Integer> states,
-            ArrayList<Integer> finalStates) {
-
-        HashMap<Integer, String> statesPrint = NFA.reverseHash(states);
+    public void print() {
 
         /** Print start state. */
-        System.out.println(statesPrint.get(this.get(1).get(0).get(0)));
+        System.out.println(this.nameState(this.get(1).get(0).get(0)));
 
-        /** Print final states. */
-        for (Integer state : finalStates) {
-
-            System.out.print(statesPrint.get(state));
-            System.out.print(Chars.space);
-        }
-        System.out.println(Chars.empty);
+        /** Print final state. */
+        System.out.println(this.nameState(this.get(this.size() - 1)
+                .get(0).get(0)));
 
         /** Print alphabet. */
         for (ArrayList<Integer> cell : this.get(0)) {
@@ -63,7 +56,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
             if (col.get(0).get(0) == 0)
                 continue;
 
-            System.out.print(statesPrint.get(col.get(0).get(0)));
+            System.out.print(this.nameState(col.get(0).get(0)));
             System.out.print(Chars.space);
         }
         System.out.println(Chars.empty);
@@ -91,7 +84,7 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                     int indexx = 0;
                     for (Integer state : cell) {
 
-                        System.out.print(statesPrint.get(state));
+                        System.out.print(this.nameState(state));
 
                         if (indexx < cell.size() - 1)
                             System.out.print(Chars.comma);
@@ -105,17 +98,25 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
         }
     }
 
+
     /**
-     * Prints the ST matrix as required.
+     * Prints the desired output.
+     *
+     * @param startState the start state
+     * @param finalStates the final states
      */
-    public void print() {
+    public void print(Integer startState, ArrayList<Integer> finalStates) {
 
         /** Print start state. */
-        System.out.println(this.nameState(this.get(1).get(0).get(0)));
+        System.out.println(this.nameState(startState));
 
-        /** Print final state. */
-        System.out.println(this.nameState(this.get(this.size() - 1)
-                .get(0).get(0)));
+        /** Print final states. */
+        for (Integer state : finalStates) {
+
+            System.out.print(this.nameState(state));
+            System.out.print(Chars.space);
+        }
+        System.out.println(Chars.empty);
 
         /** Print alphabet. */
         for (ArrayList<Integer> cell : this.get(0)) {
@@ -237,19 +238,9 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
                 maxStateNumber = column.get(0).get(0);
         }
 
-        for (ArrayList<ArrayList<Integer>> column : stmatB) {
+        while (stmatB.get(1).get(0).get(0) < maxStateNumber + 1) {
 
-            if (stmatB.indexOf(column) == 0)
-                continue;
-
-            Integer oldState = column.get(0).get(0);
-            Integer newState = maxStateNumber + oldState;
-
-            /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : stmatB)
-                for (ArrayList<Integer> cell : c)
-                    if (cell.contains(oldState))
-                        cell.set(cell.indexOf(oldState), newState);
+            StateTransitionMatrix.incrementStateNumbers(stmatB);
         }
     }
 
@@ -682,13 +673,12 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     public static StateTransitionMatrix
     union(ArrayList<StateTransitionMatrix> stmats) {
 
-        StateTransitionMatrix stmatLargest = StateTransitionMatrix.getLargest(stmats);
-        StateTransitionMatrix stmatMerged = stmatLargest;
+        StateTransitionMatrix stmatMerged = stmats.get(0);
 
         for (StateTransitionMatrix stmat : stmats) {
 
             /** Skip the first one. */
-            if (stmats.indexOf(stmat) == stmats.indexOf(stmatLargest))
+            if (stmats.indexOf(stmat) == 0)
                 continue;
 
             /** Rename the second one states as in continue of the first one. */
@@ -713,13 +703,12 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     public static StateTransitionMatrix
     concat(ArrayList<StateTransitionMatrix> stmats) {
 
-        StateTransitionMatrix stmatLargest = StateTransitionMatrix.getLargest(stmats);
-        StateTransitionMatrix stmatMerged = stmatLargest;
+        StateTransitionMatrix stmatMerged = stmats.get(0);
 
         for (StateTransitionMatrix stmat : stmats) {
 
             /** Skip the first one. */
-            if (stmats.indexOf(stmat) == stmats.indexOf(stmatLargest))
+            if (stmats.indexOf(stmat) == 0)
                 continue;
 
             /** Rename the second one states as in continue of the first one. */
@@ -743,29 +732,5 @@ ArrayList<ArrayList<ArrayList<Integer>>> {
     public static void star(StateTransitionMatrix stmat) {
 
         StateTransitionMatrix.buildStar(stmat);
-    }
-
-    /**
-     * Gets the largest StateTransitionMatrix out of an ArrayList.
-     *
-     * @param stmats the array of StateTransitionMatrix in each stage of operation.
-     * @return the largest StateTransitionMatrix.
-     */
-    private static StateTransitionMatrix
-    getLargest(ArrayList<StateTransitionMatrix> stmats) {
-
-        StateTransitionMatrix largest = null;
-        Integer maxSeen = 0;
-
-        for (StateTransitionMatrix element : stmats) {
-
-            if (element.size() > maxSeen) {
-
-                maxSeen = element.size();
-                largest = element;
-            }
-        }
-
-        return largest;
     }
 }

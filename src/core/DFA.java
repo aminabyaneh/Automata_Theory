@@ -5,6 +5,7 @@ import java.util.Collections;
 
 /**
  * The Class DFA.
+ * TODO: remove min STM.
  */
 public class DFA extends FSM {
 
@@ -17,12 +18,16 @@ public class DFA extends FSM {
     /** The final states. */
     private ArrayList<Integer> nfaFinalStates;
 
+    /** The final states. */
+    private Integer nfaStartState;
+
     /**
      * Instantiates a new DFA.
      */
     public DFA() {
 
         this.stmat = new StateTransitionMatrix();
+        this.minSTM = new StateTransitionMatrix();
         this.finalStates = new ArrayList<Integer>();
     }
 
@@ -35,6 +40,7 @@ public class DFA extends FSM {
 
         this.nfaSTM = nfa.stmat;
         this.nfaFinalStates = nfa.getFinalStates();
+        this.nfaStartState = nfa.getStartState();
 
         /** Initialize the DFA table. */
         this.initSTM();
@@ -48,7 +54,6 @@ public class DFA extends FSM {
 
         /** Add this as first state in DFA. */
         this.stmat.get(1).get(0).addAll(eClosure);
-
         /** See where the last state added goes, fill its column,
          * add the new states to state transition matrix as well.
          */
@@ -68,8 +73,11 @@ public class DFA extends FSM {
         }
 
         /** Set correct final and start states. */
-        this.simplifySTM(this.stmat);
-        LOGGER.info("Simplified STM: " + this.stmat.toString() + "\n");
+        System.out.println(this.stmat);
+        this.simplifySTM();
+        LOGGER.info("Simplified STM: " + this.stmat.toString() + "\n" +
+                "Start state: " + this.getStartState() + "\n" +
+                "Final states: " + this.getFinalStates().toString() + "\n");
     }
 
     /**
@@ -77,20 +85,24 @@ public class DFA extends FSM {
      *
      * @param stm the simplified state transition matrix.
      */
-    private void simplifySTM(StateTransitionMatrix stm) {
+    private void simplifySTM() {
+
+        /** Sort is necessary to avoid collision in state names. */
+        this.stmat = this.sortSTM(this.stmat);
 
         Integer newName = 1;
 
-        /** Set start state. */
-        this.setStartState(newName);
-
-        for (ArrayList<ArrayList<Integer>> col : stm) {
+        for (ArrayList<ArrayList<Integer>> col : this.stmat) {
 
             if (col.get(0).get(0) == 0)
                 continue;
 
             ArrayList<Integer> oldName = new ArrayList<Integer>();
             oldName.addAll(col.get(0));
+
+            /** Set start state. */
+            if (col.get(0).contains(this.nfaStartState))
+                this.setStartState(newName);
 
             /** Set final states. */
             for (Integer finalState : this.nfaFinalStates) {
@@ -102,7 +114,108 @@ public class DFA extends FSM {
             }
 
             /** Change state number in the entire table. */
-            for (ArrayList<ArrayList<Integer>> c : stm) {
+            for (ArrayList<ArrayList<Integer>> c : this.stmat) {
+
+                for (ArrayList<Integer> cell : c) {
+
+                    if (cell.equals(oldName)) {
+
+                        cell.clear();
+                        cell.add(newName);
+                    }
+                }
+            }
+            newName++;
+        }
+    }
+
+    /**
+     * Sort STM based on single member state names to prevent chaos.
+     *
+     * Pretty stupid, find a way to remove the naming procedure.
+     * @return
+     */
+    private StateTransitionMatrix sortSTM(StateTransitionMatrix stm) {
+
+        StateTransitionMatrix newSTM = new StateTransitionMatrix();
+        ArrayList<Integer> singleNumberStates = new ArrayList<Integer>();
+
+        for (ArrayList<ArrayList<Integer>> column : stm) {
+
+            if (column.get(0).get(0) == 0)
+                continue;
+
+            if (column.get(0).size() == 1)
+                singleNumberStates.add(column.get(0).get(0));
+        }
+
+        Collections.sort(singleNumberStates);
+
+        newSTM.add(stm.get(0));
+
+        for (Integer item : singleNumberStates) {
+
+            for (ArrayList<ArrayList<Integer>> column : stm) {
+
+                if (column.get(0).get(0) == 0)
+                    continue;
+
+                if (column.get(0).size() == 1)
+                    if (column.get(0).get(0) == item)
+                        newSTM.add(column);
+            }
+        }
+
+        for (ArrayList<ArrayList<Integer>> column : stm) {
+
+            if (column.get(0).get(0) == 0)
+                continue;
+
+            if (column.get(0).size() != 1)
+                newSTM.add(column);
+        }
+
+        return newSTM;
+    }
+
+    /**
+     * Simplify the state transition matrix.
+     *
+     * @param stm the simplified state transition matrix.
+     */
+    private void simplifyMinSTM() {
+
+        Integer newName = 1;
+        ArrayList<Integer> newFinalStates = new ArrayList<Integer>();
+        Integer newStartState = 0;
+
+        /** Sort is necessary to avoid collision in state names. */
+        this.minSTM = this.sortSTM(this.minSTM);
+
+        for (ArrayList<ArrayList<Integer>> col : this.minSTM) {
+
+            if (col.get(0).get(0) == 0)
+                continue;
+
+            ArrayList<Integer> oldName = new ArrayList<Integer>();
+            oldName.addAll(col.get(0));
+
+            /** Update start state. */
+            if (oldName.contains(this.getStartState()))
+                newStartState = newName;
+
+            /** Update the final states set. */
+            for (Integer element : oldName) {
+
+                if (this.getFinalStates().contains(element)) {
+
+                    newFinalStates.add(newName);
+                    break;
+                }
+            }
+
+            /** Change state number in the entire table. */
+            for (ArrayList<ArrayList<Integer>> c : this.minSTM) {
 
                 for (ArrayList<Integer> cell : c) {
 
@@ -116,6 +229,9 @@ public class DFA extends FSM {
 
             newName++;
         }
+
+        this.setFinalStates(newFinalStates);
+        this.setStartState(newStartState);
     }
 
     /**
@@ -294,72 +410,64 @@ public class DFA extends FSM {
 
     /**
      * Creates the DFA corresponding to final partitioning.
+     * Builds the minSTM state transition matrix.
      *
      * @param partition the final partition
      */
     private void partitionToDFA(Partition partition) {
 
         /** First column is the same as NFA except for epsilon. */
-        //        ArrayList<ArrayList<Integer>> newColumn =
-        //                new ArrayList<ArrayList<Integer>>();
-        //        ArrayList<Integer> newCell;
-        //
-        //        for (ArrayList<Integer> cell : this.nfaSTM.get(0)) {
-        //
-        //            if (cell.get(0) == NFA.epsilon)
-        //                continue;
-        //
-        //            newCell = new ArrayList<Integer>();
-        //            newCell.add(cell.get(0));
-        //            newColumn.add(cell);
-        //        }
-        //        this.stmat.add(newColumn);
-        //
-        //        /** Initialize the DFA state transition matrix. */
-        //        for (ArrayList<Integer> set : partition.getSets()) {
-        //
-        //            newColumn = new ArrayList<ArrayList<Integer>>();
-        //
-        //            for (ArrayList<Integer> c : this.nfaSTM.get(0)) {
-        //
-        //                if (c.get(0) == NFA.epsilon)
-        //                    continue;
-        //
-        //                newCell = new ArrayList<Integer>();
-        //                newColumn.add(newCell);
-        //            }
-        //
-        //            this.stmat.add(newColumn);
-        //        }
+        ArrayList<ArrayList<Integer>> newColumn =
+                new ArrayList<ArrayList<Integer>>();
+        ArrayList<Integer> newCell;
 
-        /** Fill the state transition matrix based on partitions. */
-        //        int index = 0;
-        //        for (ArrayList<ArrayList<Integer>> col : stmat) {
-        //
-        //            if (col.get(0).get(0) == 0)
-        //                continue;
-        //
-        //            String [] str = this.getStateTransitionMat().
-        //                    get(index).split("\\s+");
-        //
-        //            int cellIndex = 0;
-        //            for (String s : str) {
-        //
-        //                cellIndex++;
-        //                if (s.charAt(0) == Chars.none) {
-        //
-        //                    col.get(cellIndex).clear();
-        //                }
-        //                else {
-        //
-        //                    String [] st = s.split(",");
-        //                    col.get(cellIndex).addAll(this.
-        //                            convertStatesToIntegers(st));
-        //                }
-        //            }
-        //
-        //            index++;
-        //        }
+        /** Add alphabet to minSTM. */
+        this.minSTM.add(this.stmat.get(0));
+
+        /** Initialize the DFA state transition matrix. */
+        for (ArrayList<Integer> set : partition.getSets()) {
+
+            if (set.isEmpty())
+                continue;
+
+            newColumn = new ArrayList<ArrayList<Integer>>();
+
+            for (ArrayList<Integer> cell : this.minSTM.get(0)) {
+
+                /** Fill the state transition matrix based
+                 *  on partitions. */
+
+                if (cell.get(0) == 0) {
+
+                    newColumn.add(set);
+                    continue;
+                }
+
+                newCell = new ArrayList<Integer>();
+
+                ArrayList<Integer> dstState = StateTransitionMatrix.
+                        retrieveCell(stmat, set.get(0), cell.get(0));
+
+                if (!dstState.isEmpty()) {
+
+                    for (ArrayList<Integer> s : partition.getSets()) {
+
+                        if (s.contains(dstState.get(0)))
+                            newCell = s;
+                    }
+                }
+                newColumn.add(newCell);
+            }
+
+            this.minSTM.add(newColumn);
+        }
+
+        LOGGER.info("Minimum DFA: " + this.minSTM.toString() + "\n");
+        this.simplifyMinSTM();
+        LOGGER.info("Simplified Minimum DFA: " + this.minSTM.toString() +
+                "\n" + "Start state: " + this.getStartState().toString() +
+                "\n" + "Final states: " + this.getFinalStates().toString()
+                + "\n");
     }
 
     /**
