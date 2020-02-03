@@ -166,9 +166,6 @@ public class Partition {
         ArrayList<ArrayList<Integer>> col2 = StateTransitionMatrix.
                 retrieveColumn(stmat, state2);
 
-        System.out.println("col1: " + col1.toString());
-        System.out.println("col2: " + col2.toString());
-
         for (int index = 1; index < col1.size(); index++) {
 
             if (!(this.haveSimilarSets(col1.get(index),

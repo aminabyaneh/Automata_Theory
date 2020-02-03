@@ -73,7 +73,6 @@ public class DFA extends FSM {
         }
 
         /** Set correct final and start states. */
-        System.out.println(this.stmat);
         this.simplifySTM();
         LOGGER.info("Simplified STM: " + this.stmat.toString() + "\n" +
                 "Start state: " + this.getStartState() + "\n" +

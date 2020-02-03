@@ -176,7 +176,6 @@ public class CFG {
         Set<String> set = new HashSet<>(this.stackVariables);
         this.stackVariables.clear();
         this.stackVariables.addAll(set);
-        System.out.println(this.stackVariables.toString());
     }
 
 }
