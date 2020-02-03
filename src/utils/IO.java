@@ -112,12 +112,11 @@ public class IO {
         str = sc.nextLine();
         HashMap<String, ArrayList<String>> rules =
                 new HashMap<String, ArrayList<String>>();
-
+        ArrayList<String> temp;
         while (this.taskToTasks(str) == Tasks.Unknown) {
 
-            rules.put(str.split(":")[0],
-                    (ArrayList<String>) Arrays.
-                    asList(str.split(":")[1].split("|")));
+            temp = new ArrayList<String>(Arrays.asList(str.split(":")[1].split("\\|")));
+            rules.put(str.split(":")[0], temp);
             str = sc.nextLine();
         }
 
